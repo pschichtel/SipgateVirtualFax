@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <UseWPF>true</UseWPF>
+        <LangVersion>8</LangVersion>
+        <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <Prefer32bit>true</Prefer32bit>
+      <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <Prefer32bit>true</Prefer32bit>
+      <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SipgateVirtualFax\SipgateVirtualFax.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CredentialManagement" Version="1.0.2" />
+    </ItemGroup>
+
+</Project>
