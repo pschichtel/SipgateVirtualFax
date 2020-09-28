@@ -224,6 +224,7 @@ namespace SipgateVirtualFax
         public static void Convert(string imagePath, string targetPath)
         {
             using var document = new Document();
+            document.SetMargins(0, 0, 0, 0);
             PdfWriter.GetInstance(document, new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None));
             document.Open();
 
@@ -254,39 +255,71 @@ namespace SipgateVirtualFax
 
     public static class Sipgate
     {
-        public static void SendFax(string faxline, string recipient, string pdfPath, Credential credential)
+        private const String BaseUrl = "https://api.sipgate.com/v2";
+
+        private static Task<HttpResponseMessage> SendRequestInternal<Req>(HttpMethod method, string path, Req body, Credential credential)
         {
-            var fileName = Path.GetFileName(pdfPath);
-            var documentContent = Convert.ToBase64String(File.ReadAllBytes(pdfPath));
             var client = new HttpClient();
-            var requestContent = JsonConvert.SerializeObject(new SendFaxRequest
-            {
-                FaxlineId = faxline,
-                Recipient = recipient,
-                Filename = fileName,
-                Content = documentContent
-            });
-            HttpRequestHeaders headers;
             var message = new HttpRequestMessage
             {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri("https://api.sipgate.com/v2/sessions/fax"),
+                Method = method,
+                RequestUri = new Uri($"{BaseUrl}{path}"),
                 Headers =
                 {
                     {"Authorization", CredentialToBasicAuth(credential)}
                 },
-                Content = new StringContent(requestContent, Encoding.UTF8, "application/json")
+                Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
             };
-            
-            File.WriteAllBytes($"{pdfPath}.request.json", Encoding.UTF8.GetBytes(requestContent));
 
-            HttpResponseMessage response = client.SendAsync(message).Result;
-            string responseContent = response.Content.ReadAsStringAsync().Result;
-            File.WriteAllBytes($"{pdfPath}.response.txt", Encoding.UTF8.GetBytes(responseContent));
-            if (response.StatusCode != HttpStatusCode.OK)
+            return client.SendAsync(message);
+        }
+
+        private static async Task<Res> SendRequestWithResponse<Req, Res>(HttpMethod method, string path, Req body, Credential credential)
+        {
+            var result = await SendRequestInternal(method, path, body, credential);
+            var responseContent = await result.Content.ReadAsStringAsync();
+            if (result.IsSuccessStatusCode)
             {
-                throw new Exception(response.Content.ReadAsStringAsync().Result);
+                return JsonConvert.DeserializeObject<Res>(responseContent);
             }
+            
+            throw new Exception($"Result: status={result.StatusCode} content={responseContent}");
+        }
+
+        private static async Task<bool> SendRequest<Req>(HttpMethod method, string path, Req body, Credential credential)
+        {
+            var result = await SendRequestInternal(method, path, body, credential);
+            return result.IsSuccessStatusCode;
+        }
+        
+        public static string SendFax(string faxLine, string recipient, string pdfPath, Credential credential)
+        {
+            var request = new SendFaxRequest
+            {
+                FaxlineId = faxLine,
+                Recipient = recipient,
+                Filename = Path.GetFileName(pdfPath),
+                Content = Convert.ToBase64String(File.ReadAllBytes(pdfPath))
+            };
+            try
+            {
+                var response = SendRequestWithResponse<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax", request, credential).Result;
+                return response.SessionId;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Failed to parse the response from sipgate!", e);
+            }
+        }
+
+        public static bool AttemptFaxResend(string faxId, string faxLine, Credential credential)
+        {
+            var request = new ResendFaxRequest
+            {
+                FaxId = faxId,
+                FaxlineId = faxLine
+            };
+            return SendRequest(HttpMethod.Post, "/sessions/fax/resend", request, credential).Result;
         }
 
         public static IEnumerable<Faxline> GetFaxLinesSync(Credential credential)
@@ -366,5 +399,20 @@ namespace SipgateVirtualFax
         
         [JsonProperty("base64Content")]
         public string Content { get; set; }
+    }
+
+    public class SendFaxResponse
+    {
+        [JsonProperty("sessionId")]
+        public string SessionId { get; set; }
+    }
+
+    public class ResendFaxRequest
+    {
+        [JsonProperty("faxId")]
+        public string FaxId { get; set; }
+        
+        [JsonProperty("faxlineId")]
+        public string FaxlineId { get; set; }
     }
 }
