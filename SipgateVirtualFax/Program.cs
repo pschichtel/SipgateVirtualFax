@@ -257,7 +257,7 @@ namespace SipgateVirtualFax
     {
         private const String BaseUrl = "https://api.sipgate.com/v2";
 
-        private static Task<HttpResponseMessage> SendRequestInternal<Req>(HttpMethod method, string path, Req body, Credential credential)
+        private static Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent content, Credential credential)
         {
             var client = new HttpClient();
             var message = new HttpRequestMessage
@@ -268,15 +268,20 @@ namespace SipgateVirtualFax
                 {
                     {"Authorization", CredentialToBasicAuth(credential)}
                 },
-                Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
+                Content = content
             };
 
             return client.SendAsync(message);
         }
 
-        private static async Task<Res> SendRequestWithResponse<Req, Res>(HttpMethod method, string path, Req body, Credential credential)
+        private static Task<HttpResponseMessage> SendRequestJson<Req>(HttpMethod method, string path, Req body, Credential credential)
         {
-            var result = await SendRequestInternal(method, path, body, credential);
+            var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+            return SendBasicRequest(method, path, content, credential);
+        }
+
+        private static async Task<Res> TryProcessJson<Res>(HttpResponseMessage result)
+        {
             var responseContent = await result.Content.ReadAsStringAsync();
             if (result.IsSuccessStatusCode)
             {
@@ -286,9 +291,19 @@ namespace SipgateVirtualFax
             throw new Exception($"Result: status={result.StatusCode} content={responseContent}");
         }
 
+        private static async Task<Res> SendRequest<Res>(HttpMethod method, string path, Credential credential)
+        {
+            return await TryProcessJson<Res>(await SendBasicRequest(method, path, null, credential));
+        }
+        
+        private static async Task<Res> SendRequestWithResponse<Req, Res>(HttpMethod method, string path, Req body, Credential credential)
+        {
+            return await TryProcessJson<Res>(await SendRequestJson(method, path, body, credential));
+        }
+
         private static async Task<bool> SendRequest<Req>(HttpMethod method, string path, Req body, Credential credential)
         {
-            var result = await SendRequestInternal(method, path, body, credential);
+            var result = await SendRequestJson(method, path, body, credential);
             return result.IsSuccessStatusCode;
         }
         
@@ -325,6 +340,11 @@ namespace SipgateVirtualFax
         public static IEnumerable<Faxline> GetFaxLinesSync(Credential credential)
         {
             return GetFaxLines(credential).Result;
+        }
+
+        public static HistoryEntry GetHistoryEntry(string entryId, Credential credential)
+        {
+            return SendRequest<HistoryEntry>(HttpMethod.Get, $"/history/{entryId}", credential).Result;
         }
 
         private static string CredentialToBasicAuth(Credential credential)
@@ -414,5 +434,23 @@ namespace SipgateVirtualFax
         
         [JsonProperty("faxlineId")]
         public string FaxlineId { get; set; }
+    }
+
+    public class HistoryEntry
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        
+        [JsonProperty("source")]
+        public string Source { get; set; }
+        
+        [JsonProperty("target")]
+        public string Target { get; set; }
+        
+        [JsonProperty("type")]
+        public string Type { get; set; }
+        
+        [JsonProperty("status")]
+        public string Status { get; set; }
     }
 }
