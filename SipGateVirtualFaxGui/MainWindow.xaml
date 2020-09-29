@@ -5,28 +5,83 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SipGateVirtualFaxGui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    
+        Title="MainWindow"
+        Height="450"
+        Width="800"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <local:BoolInverter x:Key="BoolInverter" />
+    </Window.Resources>
     <Window.DataContext>
         <local:ViewModel />
     </Window.DataContext>
-    
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        
+
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        
-        <Label Grid.Row="0" Grid.Column="0">Fax line</Label>
-        <ComboBox Grid.Row="0" Grid.Column="1" Name="FaxLine" SelectedValue="{Binding Path=SelectedFaxLine}" ItemsSource="{Binding Path=FaxLines, Mode=OneTime, IsAsync=True}" DisplayMemberPath="Alias"/>
-        <Label Grid.Row="1" Grid.Column="0">Tel</Label>
-        <TextBox Grid.Row="1" Grid.Column="1" Name="Tel" Text="{Binding TelNumber}"/>
-        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Click="ButtonBase_OnClick">Send fax</Button>
+
+        <Label Grid.Row="0"
+               Grid.Column="0">
+            Fax line
+        </Label>
+        <ComboBox Grid.Row="0"
+                  Grid.Column="1"
+                  SelectedValue="{Binding Path=SelectedFaxLine}"
+                  ItemsSource="{Binding Path=FaxLines, Mode=OneTime, IsAsync=True}"
+                  DisplayMemberPath="Alias"
+                  SelectedIndex="0" />
+        <Label Grid.Row="1"
+               Grid.Column="0">
+            Fax
+        </Label>
+        <TextBox Grid.Row="1"
+                 Grid.Column="1"
+                 Name="FaxNumber">
+            <TextBox.Text>
+                <Binding Path="FaxNumber"
+                         UpdateSourceTrigger="PropertyChanged">
+                    <Binding.ValidationRules>
+                        <local:PhoneNumberValidation />
+                    </Binding.ValidationRules>
+                </Binding>
+            </TextBox.Text>
+        </TextBox>
+
+        <Grid Grid.Row="2"
+              Grid.Column="0"
+              ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Click="ScanButton_OnClick"
+                    Content="Scan and send fax">
+                <Button.IsEnabled>
+                    <Binding ElementName="FaxNumber"
+                             Path="(Validation.HasError)"
+                             Converter="{StaticResource BoolInverter}" />
+                </Button.IsEnabled>
+            </Button>
+            <Button Grid.Column="1"
+                    Click="PdfButton_OnClick"
+                    Content=" Import PDF and send fax">
+                <Button.IsEnabled>
+                    <Binding ElementName="FaxNumber"
+                             Path="(Validation.HasError)"
+                             Converter="{StaticResource BoolInverter}" />
+                </Button.IsEnabled>
+            </Button>
+        </Grid>
     </Grid>
 </Window>

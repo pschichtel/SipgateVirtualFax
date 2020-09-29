@@ -86,42 +86,36 @@ namespace SipgateVirtualFax
 
             try
             {
-                if (session.Open() == ReturnCode.Success)
-                {
-                    DataSource source = session.DefaultSource;
-                    if (source.Open() == ReturnCode.Success)
-                    {
-                        var uiMode = showScannerUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
-                        PrintCapabilities(source);
-                        if (source.Enable(uiMode, false, IntPtr.Zero) == ReturnCode.Success)
-                        {
-                            lock (programFinishedMonitor)
-                            {
-                                Monitor.Wait(programFinishedMonitor);
-                            }
-
-                            if (output.Count == 0)
-                            {
-                                throw new NoDocumentScannedException(cause);
-                            }
-
-                            Console.WriteLine($"Enabled device {source.Name} successfully!");
-                            return output;
-                        }
-                        else
-                        {
-                            throw new Exception("Failed to enable data source!");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("Failed to open data source!");
-                    }
-                }
-                else
+                if (session.Open() != ReturnCode.Success)
                 {
                     throw new Exception("Failed to open TWAIN session!");
                 }
+
+                DataSource source = session.DefaultSource;
+                if (source.Open() != ReturnCode.Success)
+                {
+                    throw new Exception("Failed to open data source!");
+                }
+
+                var uiMode = showScannerUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
+                PrintCapabilities(source);
+                if (source.Enable(uiMode, false, IntPtr.Zero) != ReturnCode.Success)
+                {
+                    throw new Exception("Failed to enable data source!");
+                }
+
+                lock (programFinishedMonitor)
+                {
+                    Monitor.Wait(programFinishedMonitor);
+                }
+
+                if (output.Count == 0)
+                {
+                    throw new NoDocumentScannedException(cause);
+                }
+
+                Console.WriteLine($"Enabled device {source.Name} successfully!");
+                return output;
             }
             finally
             {
@@ -132,7 +126,7 @@ namespace SipgateVirtualFax
                 }
             }
         }
-        
+
         private static void SetCapability<T>(DataSource source, Func<ICapabilities, ICapWrapper<T>> cap, T value)
         {
             cap(source.Capabilities).SetValue(value);
@@ -141,7 +135,7 @@ namespace SipgateVirtualFax
 
         private static void PrintCapabilities(DataSource source)
         {
-            string supportedActions<T>(IReadOnlyCapWrapper<T> cap)
+            static string supportedActions<T>(IReadOnlyCapWrapper<T> cap)
             {
                 return $"GET={cap.CanGet} SET={cap.CanSet} GET_DEFAULT={cap.CanGetDefault} GET_CURRENT={cap.CanGetCurrent}";
             }
@@ -155,7 +149,7 @@ namespace SipgateVirtualFax
             {
                 Console.WriteLine($"Capability: {name}={cap.GetCurrent()} ({supportedActions(cap)})");
             }
-            
+
             roCap("PaperDetectable", source.Capabilities.CapPaperDetectable);
             roCap("FeederLoaded", source.Capabilities.CapFeederLoaded);
             rwCap("AutoFeed", source.Capabilities.CapAutoFeed);
@@ -168,19 +162,7 @@ namespace SipgateVirtualFax
 
         private static void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor, ref IList<string> output, ref Exception cause)
         {
-            Image img = null;
-            if (e.NativeData != IntPtr.Zero)
-            {
-                var stream = e.GetNativeImageStream();
-                if (stream != null)
-                {
-                    img = Image.FromStream(stream);
-                }
-            }
-            else if (!string.IsNullOrEmpty(e.FileDataPath))
-            {
-                img = new Bitmap(e.FileDataPath);
-            }
+            Image img = GetTransferredImage(e);
 
             if (img != null)
             {
@@ -210,6 +192,24 @@ namespace SipgateVirtualFax
             Console.WriteLine($"Received data from source {e.DataSource.Name}");
         }
 
+        private static Image GetTransferredImage(DataTransferredEventArgs e)
+        {
+            if (e.NativeData != IntPtr.Zero)
+            {
+                var stream = e.GetNativeImageStream();
+                if (stream != null)
+                {
+                    return Image.FromStream(stream);
+                }
+            }
+            else if (!string.IsNullOrEmpty(e.FileDataPath))
+            {
+                return new Bitmap(e.FileDataPath);
+            }
+
+            return null;
+        }
+
         static void TriggerMonitor(ref object monitor)
         {
             lock (monitor)
@@ -230,7 +230,7 @@ namespace SipgateVirtualFax
 
             var image = iTextSharp.text.Image.GetInstance(new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
             document.Add(image);
-        } 
+        }
     }
 
     class Program
@@ -245,12 +245,10 @@ namespace SipgateVirtualFax
             Console.WriteLine(targetPath);
         }
     }
-    
+
     public class NoDocumentScannedException : Exception
     {
-        public NoDocumentScannedException(Exception cause) : base("No document scanned!", cause)
-        {
-        }
+        public NoDocumentScannedException(Exception cause) : base("No document scanned!", cause) { }
     }
 
     public static class Sipgate
@@ -266,7 +264,7 @@ namespace SipgateVirtualFax
                 RequestUri = new Uri($"{BaseUrl}{path}"),
                 Headers =
                 {
-                    {"Authorization", CredentialToBasicAuth(credential)}
+                    { "Authorization", CredentialToBasicAuth(credential) }
                 },
                 Content = content
             };
@@ -287,7 +285,7 @@ namespace SipgateVirtualFax
             {
                 return JsonConvert.DeserializeObject<Res>(responseContent);
             }
-            
+
             throw new Exception($"Result: status={result.StatusCode} content={responseContent}");
         }
 
@@ -295,7 +293,7 @@ namespace SipgateVirtualFax
         {
             return await TryProcessJson<Res>(await SendBasicRequest(method, path, null, credential));
         }
-        
+
         private static async Task<Res> SendRequestWithResponse<Req, Res>(HttpMethod method, string path, Req body, Credential credential)
         {
             return await TryProcessJson<Res>(await SendRequestJson(method, path, body, credential));
@@ -306,7 +304,7 @@ namespace SipgateVirtualFax
             var result = await SendRequestJson(method, path, body, credential);
             return result.IsSuccessStatusCode;
         }
-        
+
         public static string SendFax(string faxLine, string recipient, string pdfPath, Credential credential)
         {
             var request = new SendFaxRequest
@@ -351,7 +349,7 @@ namespace SipgateVirtualFax
         {
             return $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{credential.Username}:{credential.Password}"))}";
         }
-        
+
         public static async Task<IEnumerable<Faxline>> GetFaxLines(Credential credential)
         {
             var client = new HttpClient();
@@ -361,7 +359,7 @@ namespace SipgateVirtualFax
                 RequestUri = new Uri("https://api.sipgate.com/v2/groupfaxlines"),
                 Headers =
                 {
-                    {"Authorization", CredentialToBasicAuth(credential)}
+                    { "Authorization", CredentialToBasicAuth(credential) }
                 }
             };
 
@@ -379,24 +377,25 @@ namespace SipgateVirtualFax
             {
                 Console.WriteLine(e);
             }
+
             return new Faxline[0];
         }
     }
 
     public class FaxlinesResponse
     {
-            [JsonProperty("items")]
-            public IEnumerable<Faxline> Items { get; set; }
+        [JsonProperty("items")]
+        public IEnumerable<Faxline> Items { get; set; }
     }
 
     public class Faxline
     {
         [JsonProperty("id")]
         public string Id { get; set; }
-        
+
         [JsonProperty("alias")]
         public string Alias { get; set; }
-        
+
         [JsonProperty("groupId")]
         public string GroupId { get; set; }
 
@@ -410,13 +409,13 @@ namespace SipgateVirtualFax
     {
         [JsonProperty("faxlineId")]
         public string FaxlineId { get; set; }
-        
+
         [JsonProperty("recipient")]
         public string Recipient { get; set; }
-        
+
         [JsonProperty("filename")]
         public string Filename { get; set; }
-        
+
         [JsonProperty("base64Content")]
         public string Content { get; set; }
     }
@@ -431,7 +430,7 @@ namespace SipgateVirtualFax
     {
         [JsonProperty("faxId")]
         public string FaxId { get; set; }
-        
+
         [JsonProperty("faxlineId")]
         public string FaxlineId { get; set; }
     }
@@ -440,16 +439,16 @@ namespace SipgateVirtualFax
     {
         [JsonProperty("id")]
         public string Id { get; set; }
-        
+
         [JsonProperty("source")]
         public string Source { get; set; }
-        
+
         [JsonProperty("target")]
         public string Target { get; set; }
-        
+
         [JsonProperty("type")]
         public string Type { get; set; }
-        
+
         [JsonProperty("status")]
         public string Status { get; set; }
     }
