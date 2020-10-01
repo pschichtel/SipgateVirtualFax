@@ -66,7 +66,7 @@ namespace SipGateVirtualFaxGui
             _faxClient = new SipgateFaxClient(credential.Username, credential.Password);
         }
 
-        public IEnumerable<Faxline> FaxLines => _faxClient.GetFaxLinesSync();
+        public IEnumerable<Faxline> FaxLines => _faxClient.GetFaxLines().Result;
 
         public Faxline? SelectedFaxLine
         {

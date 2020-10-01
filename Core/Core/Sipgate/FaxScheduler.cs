@@ -10,7 +10,7 @@ namespace SipgateVirtualFax.Core.Sipgate
         private readonly BlockingCollection<TrackedFax> _pendingSend;
         private readonly BlockingCollection<TrackedFax> _pendingCompletion;
 
-        private volatile bool _shutdown = false;
+        private volatile bool _shutdown;
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
         
         public FaxScheduler(SipgateFaxClient client)

@@ -6,10 +6,10 @@ namespace SipgateVirtualFax.Core.Sipgate
     public class FaxlinesResponse
     {
         [JsonProperty("items")]
-        public IEnumerable<Faxline> Items { get; }
+        public Faxline[] Items { get; }
 
         [JsonConstructor]
-        public FaxlinesResponse(IEnumerable<Faxline> items)
+        public FaxlinesResponse(Faxline[] items)
         {
             Items = items;
         }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -104,14 +103,10 @@ namespace SipgateVirtualFax.Core.Sipgate
             return SendRequest<HistoryEntry>(HttpMethod.Get, $"/history/{entryId}").Result;
         }
 
-        public IEnumerable<Faxline> GetFaxLinesSync()
+        public async Task<Faxline[]> GetFaxLines()
         {
-            return GetFaxLines().Result;
-        }
-
-        public Task<IEnumerable<Faxline>> GetFaxLines()
-        {
-            return SendRequest<IEnumerable<Faxline>>(HttpMethod.Get, "/groupfaxlines");
+            var response = await SendRequest<FaxlinesResponse>(HttpMethod.Get, "/groupfaxlines");
+            return response.Items;
         }
     }
 }
