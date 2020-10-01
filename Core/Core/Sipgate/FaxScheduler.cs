@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using static SipgateVirtualFax.Core.Sipgate.HistoryEntry;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
@@ -57,7 +58,7 @@ namespace SipgateVirtualFax.Core.Sipgate
 
                 try
                 {
-                    Console.WriteLine("Got a pending fax: {fax}");
+                    Console.WriteLine($"Got a pending fax: {fax}");
                     if (fax.Id == null)
                     {
                         _client.SendFax(fax.Faxline.Id, fax.Recipient, fax.DocumentPath)
@@ -65,20 +66,20 @@ namespace SipgateVirtualFax.Core.Sipgate
                             {
                                 fax.Id = await faxId;
                                 fax.ChangeStatus(this, FaxStatus.Sending);
-                                _pendingCompletion.Add(fax);
+                                _scheduleCompletionCheck(fax);
                             });
                     }
                     else
                     {
                         _client.AttemptFaxResend(fax.Id, fax.Faxline.Id)
-                        .ContinueWith(async success =>
-                        {
-                            if (await success)
+                            .ContinueWith(async success =>
                             {
-                                fax.ChangeStatus(this, FaxStatus.Sending);
-                                _pendingCompletion.Add(fax);
-                            }
-                        });
+                                if (await success)
+                                {
+                                    fax.ChangeStatus(this, FaxStatus.Sending);
+                                    _scheduleCompletionCheck(fax);
+                                }
+                            });
                     }
                 }
                 catch (Exception e)
@@ -87,6 +88,15 @@ namespace SipgateVirtualFax.Core.Sipgate
                     fax.ChangeStatus(this, FaxStatus.Failed);
                 }
             }
+        }
+
+        private void _scheduleCompletionCheck(TrackedFax fax)
+        {
+            Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                _pendingCompletion.Add(fax);
+            });
         }
 
         private void _trackThemAll()
@@ -105,21 +115,33 @@ namespace SipgateVirtualFax.Core.Sipgate
                     return;
                 }
 
+                Console.WriteLine($"Got a sending fax: {fax}");
+
                 if (fax.Id == null)
                 {
                     continue;
                 }
                 
-                
                 try
                 {
                     var historyEntry = _client.GetHistoryEntry(fax.Id);
-                    Console.WriteLine(historyEntry);
-                    Task.Run(async () =>
+                    Console.WriteLine($"History: {historyEntry}");
+                    switch(historyEntry.FaxStatus)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(5));
-                        _pendingCompletion.Add(fax);
-                    });
+                        case FaxEntryStatus.Sent:
+                            fax.ChangeStatus(this, FaxStatus.SuccessfullySent);
+                            break;
+                        case FaxEntryStatus.Failed:
+                            fax.ChangeStatus(this, FaxStatus.Failed);
+                            break;
+                        case FaxEntryStatus.Sending:
+                            fax.ChangeStatus(this, FaxStatus.Sending);
+                            _scheduleCompletionCheck(fax);
+                            break;
+                        default:
+                            fax.ChangeStatus(this, FaxStatus.Unknown);
+                            break;
+                    }
                 }
                 catch (Exception e)
                 {
@@ -167,10 +189,13 @@ namespace SipgateVirtualFax.Core.Sipgate
             Status = FaxStatus.Pending;
         }
 
-        protected internal void ChangeStatus(FaxScheduler scheduler, FaxStatus status)
+        protected internal void ChangeStatus(FaxScheduler scheduler, FaxStatus newStatus)
         {
-            Status = status;
-            StatusChanged?.Invoke(scheduler, status);
+            if (newStatus != Status)
+            {
+                Status = newStatus;
+                StatusChanged?.Invoke(scheduler, newStatus);
+            }
         }
 
         public override string ToString()

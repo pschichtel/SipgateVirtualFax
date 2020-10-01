@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+using System;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
@@ -129,13 +130,18 @@ namespace SipgateVirtualFax.Core.Sipgate
         public string Target { get; }
 
         [JsonProperty("type")]
-        public string Type { get; }
+        public EntryType Type { get; }
 
         [JsonProperty("status")]
-        public string Status { get; }
+        [JsonConverter(typeof(EntryStatusEnumConverter))]
+        public EntryStatus Status { get; }
+
+        [JsonProperty("faxStatusType")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public FaxEntryStatus? FaxStatus { get; }
 
         [JsonConstructor]
-        public HistoryEntry(string id, string source, string target, string type, string status)
+        public HistoryEntry(string id, string source, string target, EntryType type, EntryStatus status, [JsonProperty("faxStatusType")] FaxEntryStatus? faxStatus)
         {
             Id = id;
             Source = source;
@@ -147,6 +153,120 @@ namespace SipgateVirtualFax.Core.Sipgate
         public override string ToString()
         {
             return $"{nameof(Id)}: {Id}, {nameof(Source)}: {Source}, {nameof(Target)}: {Target}, {nameof(Type)}: {Type}, {nameof(Status)}: {Status}";
+        }
+
+        public enum EntryType
+        {
+            Call,
+            Voicemail,
+            Sms,
+            Fax
+        }
+
+        public class EntryTypeEnumConverter : JsonConverter<EntryType>
+        {
+            public override void WriteJson(JsonWriter writer, EntryType value, JsonSerializer serializer)
+            {
+                string strValue = value switch
+                {
+                    EntryType.Call => "CALL",
+                    EntryType.Voicemail => "VOICEMAIL",
+                    EntryType.Sms => "SMS",
+                    EntryType.Fax => "FAX",
+                    _ => throw new JsonWriterException($"Unknown enum value: {value}")
+                };
+                
+                writer.WriteValue(strValue);
+            }
+
+            public override EntryType ReadJson(JsonReader reader, Type objectType, EntryType existingValue, bool hasExistingValue,
+                JsonSerializer serializer)
+            {
+                var val = reader.Value;
+                return val switch
+                {
+                    "CALL" => EntryType.Call,
+                    "VOICEMAIL" => EntryType.Voicemail,
+                    "SMS" => EntryType.Sms,
+                    "FAX" => EntryType.Fax,
+                    _ => throw new JsonReaderException($"Value was not a valid entry type: {val}")
+                };
+            }
+        }
+
+        public enum EntryStatus
+        {
+            Pickup,
+            NoPickup,
+            Busy,
+            Forward
+        }
+
+        public class EntryStatusEnumConverter : JsonConverter<EntryStatus>
+        {
+            public override void WriteJson(JsonWriter writer, EntryStatus value, JsonSerializer serializer)
+            {
+                string strValue = value switch
+                {
+                    EntryStatus.Pickup => "PICKUP",
+                    EntryStatus.NoPickup => "NOPICKUP",
+                    EntryStatus.Busy => "BUSY",
+                    EntryStatus.Forward => "FORWARD",
+                    _ => throw new JsonWriterException($"Unknown enum value: {value}")
+                };
+                
+                writer.WriteValue(strValue);
+            }
+
+            public override EntryStatus ReadJson(JsonReader reader, Type objectType, EntryStatus existingValue, bool hasExistingValue,
+                JsonSerializer serializer)
+            {
+                var val = reader.Value;
+                return val switch
+                {
+                    "PICKUP" => EntryStatus.Pickup,
+                    "NOPICKUP" => EntryStatus.NoPickup,
+                    "BUSY" => EntryStatus.Busy,
+                    "FORWARD" => EntryStatus.Forward,
+                    _ => throw new JsonReaderException($"Value was not a valid entry status: {val}")
+                };
+            }
+        }
+
+        public enum FaxEntryStatus
+        {
+            Sent,
+            Failed,
+            Sending
+        }
+        
+        public class FaxEntryStatusEnumConverter : JsonConverter<FaxEntryStatus>
+        {
+            public override void WriteJson(JsonWriter writer, FaxEntryStatus value, JsonSerializer serializer)
+            {
+                string strValue = value switch
+                {
+                    FaxEntryStatus.Sent => "SENT",
+                    FaxEntryStatus.Failed => "FAILED",
+                    FaxEntryStatus.Sending => "SENDING",
+                    _ => throw new JsonWriterException($"Unknown enum value: {value}")
+                };
+                
+                writer.WriteValue(strValue);
+            }
+
+            public override FaxEntryStatus ReadJson(JsonReader reader, Type objectType, FaxEntryStatus existingValue, bool hasExistingValue,
+                JsonSerializer serializer)
+            {
+                var val = reader.Value;
+                return val switch
+                {
+                    "SENT" => FaxEntryStatus.Sent,
+                    "FAILED" => FaxEntryStatus.Failed,
+                    "SENDING" => FaxEntryStatus.Sending,
+                    _ => throw new JsonReaderException($"Value was not a valid fax entry status: {val}")
+                };
+            }
         }
     }
 }
