@@ -127,16 +127,19 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                var imagePath = Scanner.Scan(true).First();
-                var pdfPath = Path.ChangeExtension(imagePath, "pdf");
-                ImageToPdfConverter.Convert(imagePath, pdfPath);
-                return pdfPath;
+                var paths = Scanner.Scan(true);
+                if (paths.Count > 0)
+                {
+                    var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
+                    ImageToPdfConverter.Convert(paths, pdfPath);
+                    return pdfPath;
+                }
             }
             catch (NoDocumentScannedException)
             {
                 MessageBox.Show("No document scanned!");
-                return null;
             }
+            return null;
         }
 
         private void Send(string pdfPath)

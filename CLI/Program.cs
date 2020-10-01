@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SipgateVirtualFax.Core;
 
@@ -8,11 +10,17 @@ namespace SipgateVirtualFax.CLI
     {
         public static void Main(string[] args)
         {
-            var pages = Scanner.Scan(false);
-            var firstPage = pages.First();
-            var targetPath = $"{firstPage}.pdf";
-            ImageToPdfConverter.Convert(firstPage, targetPath);
-            Console.WriteLine(firstPage);
+            IEnumerable<string> paths;
+            if (args.Length > 0)
+            {
+                paths = args;
+            }
+            else
+            {
+                paths = Scanner.Scan(false);
+            }
+            var targetPath = Path.ChangeExtension(paths.First(), "pdf");
+            ImageToPdfConverter.Convert(paths, targetPath);
             Console.WriteLine(targetPath);
         }
     }
