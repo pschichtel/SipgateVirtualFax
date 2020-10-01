@@ -14,6 +14,7 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         private readonly string _baseUrl;
         private readonly string _basicAuth;
+        private readonly HttpClient _client;
 
         public SipgateFaxClient(string username, string password) : this(DefaultBaseUrl, username, password)
         {
@@ -23,11 +24,11 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             _baseUrl = baseUrl;
             _basicAuth = $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"))}";
+            _client = new HttpClient();
         }
 
         private Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent? content)
         {
-            var client = new HttpClient();
             var message = new HttpRequestMessage
             {
                 Method = method,
@@ -39,7 +40,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 Content = content
             };
 
-            return client.SendAsync(message);
+            return _client.SendAsync(message);
         }
 
         private Task<HttpResponseMessage> SendRequestJson<TReq>(HttpMethod method, string path, TReq body)
