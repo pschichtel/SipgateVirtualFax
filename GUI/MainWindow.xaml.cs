@@ -58,8 +58,15 @@ namespace SipGateVirtualFaxGui
     {
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
+        private readonly SipgateFaxClient _faxClient;
 
-        public IEnumerable<Faxline> FaxLines => Sipgate.GetFaxLinesSync(LookupCredential());
+        public ViewModel()
+        {
+            var credential = LookupCredential();
+            _faxClient = new SipgateFaxClient(credential.Username, credential.Password);
+        }
+
+        public IEnumerable<Faxline> FaxLines => _faxClient.GetFaxLinesSync();
 
         public Faxline? SelectedFaxLine
         {
@@ -145,7 +152,6 @@ namespace SipGateVirtualFaxGui
 
         private void Send(string pdfPath)
         {
-            var credential = LookupCredential();
             try
             {
                 var faxLineId = _selectedFaxLine?.Id;
@@ -154,7 +160,7 @@ namespace SipGateVirtualFaxGui
                     MessageBox.Show("No fax line selected!");
                     return;
                 }
-                Sipgate.SendFax(faxLineId, _faxNumber, pdfPath, credential);
+                _faxClient.SendFax(faxLineId, _faxNumber, pdfPath);
                 MessageBox.Show("Successfully send the fax!");
             }
             catch (Exception e)
