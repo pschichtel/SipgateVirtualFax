@@ -14,7 +14,7 @@ namespace SipgateVirtualFax.Core
     {
         private const string BaseUrl = "https://api.sipgate.com/v2";
 
-        private static Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent content, Credential credential)
+        private static Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent? content, Credential credential)
         {
             var client = new HttpClient();
             var message = new HttpRequestMessage
@@ -64,7 +64,7 @@ namespace SipgateVirtualFax.Core
             return result.IsSuccessStatusCode;
         }
 
-        public static string SendFax(string faxLine, string recipient, string pdfPath, Credential credential)
+        public static string? SendFax(string faxLine, string recipient, string pdfPath, Credential credential)
         {
             var request = new SendFaxRequest
             {
@@ -129,7 +129,7 @@ namespace SipgateVirtualFax.Core
                 {
                     var body = await result.Content.ReadAsStringAsync();
                     var lines = JsonConvert.DeserializeObject<FaxlinesResponse>(body);
-                    return lines.Items;
+                    return lines.Items ?? new List<Faxline>();
                 }
             }
             catch (Exception e)
@@ -145,19 +145,19 @@ namespace SipgateVirtualFax.Core
     public class FaxlinesResponse
     {
         [JsonProperty("items")]
-        public IEnumerable<Faxline> Items { get; set; }
+        public IEnumerable<Faxline>? Items { get; set; }
     }
 
     public class Faxline
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty("alias")]
-        public string Alias { get; set; }
+        public string? Alias { get; set; }
 
         [JsonProperty("groupId")]
-        public string GroupId { get; set; }
+        public string? GroupId { get; set; }
 
         public override string ToString()
         {
@@ -168,48 +168,48 @@ namespace SipgateVirtualFax.Core
     public class SendFaxRequest
     {
         [JsonProperty("faxlineId")]
-        public string FaxlineId { get; set; }
+        public string? FaxlineId { get; set; }
 
         [JsonProperty("recipient")]
-        public string Recipient { get; set; }
+        public string? Recipient { get; set; }
 
         [JsonProperty("filename")]
-        public string Filename { get; set; }
+        public string? Filename { get; set; }
 
         [JsonProperty("base64Content")]
-        public string Content { get; set; }
+        public string? Content { get; set; }
     }
 
     public class SendFaxResponse
     {
         [JsonProperty("sessionId")]
-        public string SessionId { get; set; }
+        public string? SessionId { get; set; }
     }
 
     public class ResendFaxRequest
     {
         [JsonProperty("faxId")]
-        public string FaxId { get; set; }
+        public string? FaxId { get; set; }
 
         [JsonProperty("faxlineId")]
-        public string FaxlineId { get; set; }
+        public string? FaxlineId { get; set; }
     }
 
     public class HistoryEntry
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty("source")]
-        public string Source { get; set; }
+        public string? Source { get; set; }
 
         [JsonProperty("target")]
-        public string Target { get; set; }
+        public string? Target { get; set; }
 
         [JsonProperty("type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [JsonProperty("status")]
-        public string Status { get; set; }
+        public string? Status { get; set; }
     }
 }

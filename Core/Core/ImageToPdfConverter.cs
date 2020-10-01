@@ -13,7 +13,7 @@ namespace SipgateVirtualFax.Core
             PdfWriter.GetInstance(document, new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None));
             document.Open();
 
-            var image = iTextSharp.text.Image.GetInstance(new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            var image = Image.GetInstance(new FileStream(imagePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
             document.Add(image);
         }
     }

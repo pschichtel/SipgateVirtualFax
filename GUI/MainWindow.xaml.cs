@@ -17,7 +17,7 @@ namespace SipGateVirtualFaxGui
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         public MainWindow()
         {
@@ -45,9 +45,9 @@ namespace SipGateVirtualFaxGui
 
     public class BaseViewModel : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName = null)
+        protected virtual void OnPropertyChanged(string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -55,13 +55,13 @@ namespace SipGateVirtualFaxGui
 
     public class ViewModel : BaseViewModel
     {
-        private Faxline _selectedFaxLine;
-        private string _faxNumber;
-        private string _pdfPath;
+        private Faxline? _selectedFaxLine;
+        private string _faxNumber = "";
+        private string _pdfPath = "";
 
         public IEnumerable<Faxline> FaxLines => Sipgate.GetFaxLinesSync(LookupCredential());
 
-        public Faxline SelectedFaxLine
+        public Faxline? SelectedFaxLine
         {
             get => _selectedFaxLine;
             set
@@ -111,15 +111,14 @@ namespace SipGateVirtualFaxGui
 
         private bool ChoosePdf()
         {
-            var openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PDF Documents (*.pdf)|*.pdf";
-            if (openFileDialog.ShowDialog() == true)
+            var openFileDialog = new OpenFileDialog
             {
-                _pdfPath = openFileDialog.FileName;
-                return true;
-            }
+                Filter = "PDF Documents (*.pdf)|*.pdf"
+            };
+            if (openFileDialog.ShowDialog() != true) return false;
+            _pdfPath = openFileDialog.FileName;
+            return true;
 
-            return false;
         }
 
         private bool Scan()
@@ -144,7 +143,13 @@ namespace SipGateVirtualFaxGui
             var credential = LookupCredential();
             try
             {
-                Sipgate.SendFax(_selectedFaxLine.Id, _faxNumber, _pdfPath, credential);
+                var faxLineId = _selectedFaxLine?.Id;
+                if (faxLineId == null)
+                {
+                    MessageBox.Show("No fax line selected!");
+                    return;
+                }
+                Sipgate.SendFax(faxLineId, _faxNumber, _pdfPath, credential);
                 MessageBox.Show("Successfully send the fax!");
             }
             catch (Exception e)

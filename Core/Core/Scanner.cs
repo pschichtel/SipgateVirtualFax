@@ -28,7 +28,7 @@ namespace SipgateVirtualFax.Core
             PrintState(session);
 
             IList<string> output = new List<string>();
-            Exception cause = null;
+            Exception? cause = null;
 
             session.StateChanged += (sender, eventArgs) => { PrintState(session); };
             session.TransferError += (sender, eventArgs) =>
@@ -96,7 +96,7 @@ namespace SipgateVirtualFax.Core
             }
         }
 
-        private static void SetCapability<T>(DataSource source, Func<ICapabilities, ICapWrapper<T>> cap, T value)
+        private static void SetCapability<T>(IDataSource source, Func<ICapabilities, ICapWrapper<T>> cap, T value)
         {
             cap(source.Capabilities).SetValue(value);
             PrintCapabilities(source);
@@ -129,9 +129,9 @@ namespace SipgateVirtualFax.Core
             RoCap("UIControllable", source.Capabilities.CapUIControllable);
         }
 
-        private static void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor, ref IList<string> output, ref Exception cause)
+        private static void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor, ref IList<string> output, ref Exception? cause)
         {
-            Image img = GetTransferredImage(e);
+            Image? img = GetTransferredImage(e);
 
             if (img != null)
             {
@@ -161,7 +161,7 @@ namespace SipgateVirtualFax.Core
             Console.WriteLine($"Received data from source {e.DataSource.Name}");
         }
 
-        private static Image GetTransferredImage(DataTransferredEventArgs e)
+        private static Image? GetTransferredImage(DataTransferredEventArgs e)
         {
             if (e.NativeData != IntPtr.Zero)
             {
@@ -190,6 +190,6 @@ namespace SipgateVirtualFax.Core
     
     public class NoDocumentScannedException : Exception
     {
-        public NoDocumentScannedException(Exception cause) : base("No document scanned!", cause) { }
+        public NoDocumentScannedException(Exception? cause) : base("No document scanned!", cause) { }
     }
 }
