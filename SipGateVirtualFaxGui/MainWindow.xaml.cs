@@ -132,7 +132,7 @@ namespace SipGateVirtualFaxGui
                 _pdfPath = pdfPath;
                 return true;
             }
-            catch (NoDocumentScannedException e)
+            catch (NoDocumentScannedException)
             {
                 MessageBox.Show("No document scanned!");
                 return false;

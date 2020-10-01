@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -22,7 +20,7 @@ using Image = System.Drawing.Image;
 
 namespace SipgateVirtualFax
 {
-    enum TwainState
+    internal enum TwainState
     {
         PreSession = 1,
         SourceManagerLoaded = 2,
@@ -133,31 +131,31 @@ namespace SipgateVirtualFax
             PrintCapabilities(source);
         }
 
-        private static void PrintCapabilities(DataSource source)
+        private static void PrintCapabilities(IDataSource source)
         {
-            static string supportedActions<T>(IReadOnlyCapWrapper<T> cap)
+            static string SupportedActions<T>(IReadOnlyCapWrapper<T> cap)
             {
                 return $"GET={cap.CanGet} SET={cap.CanSet} GET_DEFAULT={cap.CanGetDefault} GET_CURRENT={cap.CanGetCurrent}";
             }
 
-            void roCap<T>(string name, IReadOnlyCapWrapper<T> cap)
+            void RoCap<T>(string name, IReadOnlyCapWrapper<T> cap)
             {
-                Console.WriteLine($"Capability (read-only): {name}={cap.GetCurrent()} ({supportedActions(cap)})");
+                Console.WriteLine($"Capability (read-only): {name}={cap.GetCurrent()} ({SupportedActions(cap)})");
             }
 
-            void rwCap<T>(string name, ICapWrapper<T> cap)
+            void RwCap<T>(string name, ICapWrapper<T> cap)
             {
-                Console.WriteLine($"Capability: {name}={cap.GetCurrent()} ({supportedActions(cap)})");
+                Console.WriteLine($"Capability: {name}={cap.GetCurrent()} ({SupportedActions(cap)})");
             }
 
-            roCap("PaperDetectable", source.Capabilities.CapPaperDetectable);
-            roCap("FeederLoaded", source.Capabilities.CapFeederLoaded);
-            rwCap("AutoFeed", source.Capabilities.CapAutoFeed);
-            rwCap("AutomaticCapture", source.Capabilities.CapAutomaticCapture);
-            rwCap("AutoScan", source.Capabilities.CapAutoScan);
-            rwCap("FeederEnabled", source.Capabilities.CapFeederEnabled);
-            rwCap("XferCount", source.Capabilities.CapXferCount);
-            roCap("UIControllable", source.Capabilities.CapUIControllable);
+            RoCap("PaperDetectable", source.Capabilities.CapPaperDetectable);
+            RoCap("FeederLoaded", source.Capabilities.CapFeederLoaded);
+            RwCap("AutoFeed", source.Capabilities.CapAutoFeed);
+            RwCap("AutomaticCapture", source.Capabilities.CapAutomaticCapture);
+            RwCap("AutoScan", source.Capabilities.CapAutoScan);
+            RwCap("FeederEnabled", source.Capabilities.CapFeederEnabled);
+            RwCap("XferCount", source.Capabilities.CapXferCount);
+            RoCap("UIControllable", source.Capabilities.CapUIControllable);
         }
 
         private static void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor, ref IList<string> output, ref Exception cause)
@@ -235,7 +233,7 @@ namespace SipgateVirtualFax
 
     class Program
     {
-        static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             var pages = Scanner.Scan(false);
             var firstPage = pages.First();
@@ -253,7 +251,7 @@ namespace SipgateVirtualFax
 
     public static class Sipgate
     {
-        private const String BaseUrl = "https://api.sipgate.com/v2";
+        private const string BaseUrl = "https://api.sipgate.com/v2";
 
         private static Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent content, Credential credential)
         {
@@ -272,34 +270,34 @@ namespace SipgateVirtualFax
             return client.SendAsync(message);
         }
 
-        private static Task<HttpResponseMessage> SendRequestJson<Req>(HttpMethod method, string path, Req body, Credential credential)
+        private static Task<HttpResponseMessage> SendRequestJson<TReq>(HttpMethod method, string path, TReq body, Credential credential)
         {
             var content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
             return SendBasicRequest(method, path, content, credential);
         }
 
-        private static async Task<Res> TryProcessJson<Res>(HttpResponseMessage result)
+        private static async Task<TRes> TryProcessJson<TRes>(HttpResponseMessage result)
         {
             var responseContent = await result.Content.ReadAsStringAsync();
             if (result.IsSuccessStatusCode)
             {
-                return JsonConvert.DeserializeObject<Res>(responseContent);
+                return JsonConvert.DeserializeObject<TRes>(responseContent);
             }
 
             throw new Exception($"Result: status={result.StatusCode} content={responseContent}");
         }
 
-        private static async Task<Res> SendRequest<Res>(HttpMethod method, string path, Credential credential)
+        private static async Task<TRes> SendRequest<TRes>(HttpMethod method, string path, Credential credential)
         {
-            return await TryProcessJson<Res>(await SendBasicRequest(method, path, null, credential));
+            return await TryProcessJson<TRes>(await SendBasicRequest(method, path, null, credential));
         }
 
-        private static async Task<Res> SendRequestWithResponse<Req, Res>(HttpMethod method, string path, Req body, Credential credential)
+        private static async Task<TRes> SendRequestWithResponse<TReq, TRes>(HttpMethod method, string path, TReq body, Credential credential)
         {
-            return await TryProcessJson<Res>(await SendRequestJson(method, path, body, credential));
+            return await TryProcessJson<TRes>(await SendRequestJson(method, path, body, credential));
         }
 
-        private static async Task<bool> SendRequest<Req>(HttpMethod method, string path, Req body, Credential credential)
+        private static async Task<bool> SendRequest<TReq>(HttpMethod method, string path, TReq body, Credential credential)
         {
             var result = await SendRequestJson(method, path, body, credential);
             return result.IsSuccessStatusCode;
