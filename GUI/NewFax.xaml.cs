@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using CredentialManagement;
 using Microsoft.Win32;
-using PhoneNumbers;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 
@@ -17,11 +13,14 @@ namespace SipGateVirtualFaxGui
 {
     public partial class NewFax : UserControl
     {
+        public NewFaxViewModel ViewModel { get; }
         public NewFax()
         {
+            ViewModel = new NewFaxViewModel();
+            DataContext = ViewModel;
             InitializeComponent();
         }
-
+        
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // we manually fire the bindings so we get the validation initially
@@ -30,40 +29,48 @@ namespace SipGateVirtualFaxGui
 
         private void ScanButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var vm = (ViewModel) DataContext;
+            var vm = (NewFaxViewModel) DataContext;
             vm.ScanAndSend();
+            Close();
         }
 
         private void PdfButton_OnClick(object sender, RoutedEventArgs e)
         {
-            var vm = (ViewModel) DataContext;
+            var vm = (NewFaxViewModel) DataContext;
             vm.ChoosePdfAndSend();
+            Close();
         }
-    }
 
-    public class BaseViewModel : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string? propertyName = null)
+        private void Close()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            Window.GetWindow(this)?.Close();
         }
     }
 
-    public class ViewModel : BaseViewModel
+    public class NewFaxViewModel : BaseViewModel
     {
+        private IEnumerable<Faxline>? _faxLines;
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
         private readonly SipgateFaxClient _faxClient;
 
-        public ViewModel()
+        public NewFaxViewModel()
         {
             var credential = LookupCredential();
             _faxClient = new SipgateFaxClient(credential.Username, credential.Password);
         }
 
-        public IEnumerable<Faxline> FaxLines => _faxClient.GetFaxLines().Result;
+        public IEnumerable<Faxline> FaxLines
+        {
+            get
+            {
+                if (_faxLines == null)
+                {
+                    _faxLines = _faxClient.GetFaxLines().Result;
+                }
+                return _faxLines;
+            }
+        }
 
         public Faxline? SelectedFaxLine
         {
@@ -85,6 +92,12 @@ namespace SipGateVirtualFaxGui
             }
         }
 
+        public void Initialize()
+        {
+            SelectedFaxLine = FaxLines.FirstOrDefault();
+            FaxNumber = string.Empty;
+        }
+        
         private static Credential LookupCredential()
         {
             var credential = new Credential { Target = "sipgate-fax" };
@@ -168,46 +181,6 @@ namespace SipGateVirtualFaxGui
                 MessageBox.Show("Failed to send fax!");
                 MessageBox.Show(e.Message);
             }
-        }
-    }
-
-    public class PhoneNumberValidation : ValidationRule
-    {
-        public override ValidationResult Validate(object value, CultureInfo cultureInfo)
-        {
-            if (!(value is string phoneNumber))
-            {
-                return new ValidationResult(false, "String expected!");
-            }
-
-            var phoneNumberUtil = PhoneNumberUtil.GetInstance();
-            try
-            {
-                phoneNumberUtil.Parse(phoneNumber, "DE");
-                return ValidationResult.ValidResult;
-            }
-            catch (NumberParseException e)
-            {
-                return new ValidationResult(false, $"Not a valid phone number! {e.Message}");
-            }
-        }
-    }
-
-    public class BoolInverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool b)
-            {
-                return !b;
-            }
-
-            return false;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return Convert(value, targetType, parameter, culture);
         }
     }
 }

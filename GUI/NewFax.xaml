@@ -12,9 +12,6 @@
     <UserControl.Resources>
         <local:BoolInverter x:Key="BoolInverter" />
     </UserControl.Resources>
-    <UserControl.DataContext>
-        <local:ViewModel />
-    </UserControl.DataContext>
 
     <Grid>
         <Grid.RowDefinitions>

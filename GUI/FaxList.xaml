@@ -13,12 +13,23 @@
     </UserControl.DataContext>
 
     <Grid>
-        <ListView ItemsSource="{Binding Path=Items, UpdateSourceTrigger=PropertyChanged}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListView Grid.Row="0"
+                  ItemsSource="{Binding Path=Items, UpdateSourceTrigger=PropertyChanged}"
+                  HorizontalContentAlignment="Stretch">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <local:FaxListItem />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+
+        <Button Grid.Row="1"
+                Click="New_OnClick"
+                Content="New" />
     </Grid>
 </UserControl>
