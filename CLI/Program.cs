@@ -101,16 +101,15 @@ namespace SipgateVirtualFax.CLI
                 Console.WriteLine($"Faxline: {faxline}");
                 
                 using var scheduler = new FaxScheduler(faxClient);
-                Thread.Sleep(1000);
                 var fax = scheduler.ScheduleFax(faxline, options.Recipient, documentPath);
                 fax.StatusChanged += (sender, status) =>
                 {
                     Console.WriteLine($"Status changed: {status}");
                 };
 
-                var trackedFax = await fax.Await();
+                await fax.AwaitCompletion();
 
-                if (fax.Status == FaxStatus.Failed)
+                if (fax.FailureCause != null)
                 {
                     Console.WriteLine(fax.FailureCause);
                 }

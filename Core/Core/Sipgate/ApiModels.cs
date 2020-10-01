@@ -148,6 +148,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             Target = target;
             Type = type;
             Status = status;
+            FaxStatus = faxStatus;
         }
 
         public override string ToString()

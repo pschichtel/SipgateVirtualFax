@@ -180,7 +180,7 @@ namespace SipgateVirtualFax.Core.Sipgate
         public delegate void StatusChangedHandler(FaxScheduler sender, FaxStatus newStatus);
         public event StatusChangedHandler? StatusChanged;
 
-        private TaskCompletionSource<TrackedFax> _completed;
+        private readonly TaskCompletionSource<object?> _completed;
 
         public TrackedFax(Faxline faxline, string recipient, string documentPath)
         {
@@ -189,7 +189,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             DocumentPath = documentPath;
             Id = null;
             Status = FaxStatus.Pending;
-            _completed = new TaskCompletionSource<TrackedFax>();
+            _completed = new TaskCompletionSource<object?>();
         }
 
         protected internal void ChangeStatus(FaxScheduler scheduler, FaxStatus newStatus)
@@ -199,13 +199,13 @@ namespace SipgateVirtualFax.Core.Sipgate
                 Status = newStatus;
                 if (newStatus.IsComplete())
                 {
-                    _completed.SetResult(this);
+                    _completed.SetResult(null);
                 }
                 StatusChanged?.Invoke(scheduler, newStatus);
             }
         }
 
-        public Task<TrackedFax> Await()
+        public Task AwaitCompletion()
         {
             return _completed.Task;
         }
