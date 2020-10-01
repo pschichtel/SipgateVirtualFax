@@ -152,7 +152,7 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         public override string ToString()
         {
-            return $"{nameof(Id)}: {Id}, {nameof(Source)}: {Source}, {nameof(Target)}: {Target}, {nameof(Type)}: {Type}, {nameof(Status)}: {Status}";
+            return $"{nameof(Id)}: {Id}, {nameof(Source)}: {Source}, {nameof(Target)}: {Target}, {nameof(Type)}: {Type}, {nameof(Status)}: {Status}, {nameof(FaxStatus)}: {FaxStatus}";
         }
 
         public enum EntryType

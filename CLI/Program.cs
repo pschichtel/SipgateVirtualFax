@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using CommandLine;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
@@ -44,10 +45,10 @@ namespace SipgateVirtualFax.CLI
         public static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>( args)
-                .WithParsed(Run);
+                .WithParsedAsync(Run);
         }
 
-        private static void Run(Options options)
+        private static async Task Run(Options options)
         {
             string documentPath;
             if (options.DocumentPath != null)
@@ -102,15 +103,12 @@ namespace SipgateVirtualFax.CLI
                 using var scheduler = new FaxScheduler(faxClient);
                 Thread.Sleep(1000);
                 var fax = scheduler.ScheduleFax(faxline, options.Recipient, documentPath);
-
-                while (!fax.Status.IsComplete())
+                fax.StatusChanged += (sender, status) =>
                 {
-                    Console.WriteLine(fax.Status);
-                    if (!fax.Status.IsComplete())
-                    {
-                        Thread.Sleep(1000);
-                    }
-                }
+                    Console.WriteLine($"Status changed: {status}");
+                };
+
+                var trackedFax = await fax.Await();
 
                 if (fax.Status == FaxStatus.Failed)
                 {

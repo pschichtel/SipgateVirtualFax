@@ -107,7 +107,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 try
                 {
                     Console.WriteLine("Polling the completion queue...");
-                    fax = _pendingSend.Take(_cancellation.Token);
+                    fax = _pendingCompletion.Take(_cancellation.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -180,6 +180,8 @@ namespace SipgateVirtualFax.Core.Sipgate
         public delegate void StatusChangedHandler(FaxScheduler sender, FaxStatus newStatus);
         public event StatusChangedHandler? StatusChanged;
 
+        private TaskCompletionSource<TrackedFax> _completed;
+
         public TrackedFax(Faxline faxline, string recipient, string documentPath)
         {
             Faxline = faxline;
@@ -187,6 +189,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             DocumentPath = documentPath;
             Id = null;
             Status = FaxStatus.Pending;
+            _completed = new TaskCompletionSource<TrackedFax>();
         }
 
         protected internal void ChangeStatus(FaxScheduler scheduler, FaxStatus newStatus)
@@ -194,8 +197,17 @@ namespace SipgateVirtualFax.Core.Sipgate
             if (newStatus != Status)
             {
                 Status = newStatus;
+                if (newStatus.IsComplete())
+                {
+                    _completed.SetResult(this);
+                }
                 StatusChanged?.Invoke(scheduler, newStatus);
             }
+        }
+
+        public Task<TrackedFax> Await()
+        {
+            return _completed.Task;
         }
 
         public override string ToString()
