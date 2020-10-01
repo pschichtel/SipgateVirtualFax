@@ -26,12 +26,19 @@ namespace SipgateVirtualFax.Core.Sipgate
             _client = new HttpClient();
         }
 
-        private Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent? content)
+        private async Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent? content)
         {
+            if (content != null)
+            {
+                var c = await content.ReadAsByteArrayAsync();
+                File.WriteAllBytes(@"C:\Users\phill\Desktop\fax.json", c);
+            }
+            var url = $"{_baseUrl}{path}";
+            Console.WriteLine($"Request: {method} {url}");
             var message = new HttpRequestMessage
             {
                 Method = method,
-                RequestUri = new Uri($"{_baseUrl}{path}"),
+                RequestUri = new Uri(url),
                 Headers =
                 {
                     {"Authorization", _basicAuth}
@@ -39,7 +46,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 Content = content
             };
 
-            return _client.SendAsync(message);
+            return await _client.SendAsync(message);
         }
 
         private Task<HttpResponseMessage> SendRequestJson<TReq>(HttpMethod method, string path, TReq body)
@@ -48,7 +55,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             return SendBasicRequest(method, path, content);
         }
 
-        private async Task<TRes> TryProcessJson<TRes>(HttpResponseMessage result)
+        private static async Task<TRes> TryProcessJson<TRes>(HttpResponseMessage result)
         {
             var responseContent = await result.Content.ReadAsStringAsync();
             if (result.IsSuccessStatusCode)
@@ -66,7 +73,12 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         private async Task<TRes> SendRequestWithResponse<TReq, TRes>(HttpMethod method, string path, TReq body)
         {
-            return await TryProcessJson<TRes>(await SendRequestJson(method, path, body));
+            var response = await SendRequestJson(method, path, body);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Unsuccessful response: {response.StatusCode}");
+            }
+            return await TryProcessJson<TRes>(response);
         }
 
         private async Task<bool> SendRequest<TReq>(HttpMethod method, string path, TReq body)

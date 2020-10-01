@@ -77,10 +77,11 @@ namespace SipgateVirtualFax.CLI
                     return;
                 }
 
+                var validFaxlines = faxlines.Where(f => f.CanSend);
                 Faxline faxline;
                 if (options.Faxline != null)
                 {
-                    var selectedFaxline = faxlines.First(f =>
+                    var selectedFaxline = validFaxlines.First(f =>
                         f.Id == options.Faxline ||
                         f.Alias.Equals(options.Faxline, StringComparison.InvariantCultureIgnoreCase));
                     if (selectedFaxline == null)
@@ -93,17 +94,27 @@ namespace SipgateVirtualFax.CLI
                 }
                 else
                 {
-                    faxline = faxlines.First();
+                    faxline = validFaxlines.First();
                 }
-                
+
+                Console.WriteLine($"Faxline: {faxline}");
                 
                 using var scheduler = new FaxScheduler(faxClient);
+                Thread.Sleep(1000);
                 var fax = scheduler.ScheduleFax(faxline, options.Recipient, documentPath);
 
-                while (fax.Status != FaxStatus.SuccessfullySent)
+                while (!fax.Status.IsComplete())
                 {
                     Console.WriteLine(fax.Status);
-                    Thread.Sleep(1000);
+                    if (!fax.Status.IsComplete())
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
+
+                if (fax.Status == FaxStatus.Failed)
+                {
+                    Console.WriteLine(fax.FailureCause);
                 }
             }
             else

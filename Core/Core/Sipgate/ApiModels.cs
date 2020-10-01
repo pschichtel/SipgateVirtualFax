@@ -31,12 +31,16 @@ namespace SipgateVirtualFax.Core.Sipgate
         [JsonProperty("groupId")]
         public string GroupId { get; }
 
+        [JsonProperty("canSend")]
+        public bool CanSend { get; }
+
         [JsonConstructor]
-        public Faxline(string id, string alias, string groupId)
+        public Faxline(string id, string alias, string groupId, bool canSend)
         {
             Id = id;
             Alias = alias;
             GroupId = groupId;
+            CanSend = canSend;
         }
 
         public override string ToString()

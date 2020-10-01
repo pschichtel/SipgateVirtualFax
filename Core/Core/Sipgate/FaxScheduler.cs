@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
@@ -42,27 +43,48 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             while (!_shutdown)
             {
-                var fax = _pendingSend.Take(_cancellation.Token);
+                TrackedFax fax;
                 try
                 {
+                    Console.WriteLine("Polling the pending queue...");
+                    fax = _pendingSend.Take(_cancellation.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("Send thread terminated!");
+                    return;
+                }
+
+                try
+                {
+                    Console.WriteLine("Got a pending fax: {fax}");
                     if (fax.Id == null)
                     {
-                        fax.Id = _client.SendFax(fax.Faxline.Id, fax.Recipient, fax.DocumentPath).Result;
-                        fax.Status = FaxStatus.Sending;
+                        _client.SendFax(fax.Faxline.Id, fax.Recipient, fax.DocumentPath)
+                            .ContinueWith(async faxId =>
+                            {
+                                fax.Id = await faxId;
+                                fax.ChangeStatus(this, FaxStatus.Sending);
+                                _pendingCompletion.Add(fax);
+                            });
                     }
                     else
                     {
-                        if (_client.AttemptFaxResend(fax.Id, fax.Faxline.Id).Result)
+                        _client.AttemptFaxResend(fax.Id, fax.Faxline.Id)
+                        .ContinueWith(async success =>
                         {
-                            fax.Status = FaxStatus.Sending;
-                        }
+                            if (await success)
+                            {
+                                fax.ChangeStatus(this, FaxStatus.Sending);
+                                _pendingCompletion.Add(fax);
+                            }
+                        });
                     }
-                    _pendingCompletion.Add(fax);
                 }
                 catch (Exception e)
                 {
                     fax.FailureCause = e;
-                    fax.Status = FaxStatus.Pending;
+                    fax.ChangeStatus(this, FaxStatus.Failed);
                 }
             }
         }
@@ -71,11 +93,38 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             while (!_shutdown)
             {
-                var fax = _pendingSend.Take(_cancellation.Token);
-                if (fax.Id != null)
+                TrackedFax fax;
+                try
+                {
+                    Console.WriteLine("Polling the completion queue...");
+                    fax = _pendingSend.Take(_cancellation.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    Console.WriteLine("Tracking thread terminated!");
+                    return;
+                }
+
+                if (fax.Id == null)
+                {
+                    continue;
+                }
+                
+                
+                try
                 {
                     var historyEntry = _client.GetHistoryEntry(fax.Id);
                     Console.WriteLine(historyEntry);
+                    Task.Run(async () =>
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(5));
+                        _pendingCompletion.Add(fax);
+                    });
+                }
+                catch (Exception e)
+                {
+                    fax.FailureCause = e;
+                    fax.ChangeStatus(this, FaxStatus.Unknown);
                 }
             }
         }
@@ -103,8 +152,11 @@ namespace SipgateVirtualFax.Core.Sipgate
         public string Recipient { get; }
         public string DocumentPath { get; }
         public string? Id { get; protected internal set; }
-        public FaxStatus Status { get; protected internal set; }
+        public FaxStatus Status { get; private set; }
         public Exception? FailureCause { get; protected internal set; }
+
+        public delegate void StatusChangedHandler(FaxScheduler sender, FaxStatus newStatus);
+        public event StatusChangedHandler? StatusChanged;
 
         public TrackedFax(Faxline faxline, string recipient, string documentPath)
         {
@@ -114,6 +166,17 @@ namespace SipgateVirtualFax.Core.Sipgate
             Id = null;
             Status = FaxStatus.Pending;
         }
+
+        protected internal void ChangeStatus(FaxScheduler scheduler, FaxStatus status)
+        {
+            Status = status;
+            StatusChanged?.Invoke(scheduler, status);
+        }
+
+        public override string ToString()
+        {
+            return $"{nameof(Faxline)}: {Faxline}, {nameof(Recipient)}: {Recipient}, {nameof(DocumentPath)}: {DocumentPath}, {nameof(Id)}: {Id}, {nameof(Status)}: {Status}, {nameof(FailureCause)}: {FailureCause}";
+        }
     }
 
     public enum FaxStatus
@@ -121,6 +184,34 @@ namespace SipgateVirtualFax.Core.Sipgate
         Pending,
         Sending,
         SuccessfullySent,
-        Failed
+        Failed,
+        Unknown
+    }
+
+    public static class FaxStatusExtensions
+    {
+        public static bool IsComplete(this FaxStatus status)
+        {
+            switch (status)
+            {
+                case FaxStatus.Failed:
+                case FaxStatus.SuccessfullySent:
+                case FaxStatus.Unknown:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+        public static bool CanResend(this FaxStatus status)
+        {
+            switch (status)
+            {
+                case FaxStatus.Failed:
+                case FaxStatus.Unknown:
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
 }
