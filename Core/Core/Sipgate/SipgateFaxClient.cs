@@ -76,7 +76,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             return result.IsSuccessStatusCode;
         }
 
-        public string? SendFax(string faxLine, string recipient, string pdfPath)
+        public async Task<string> SendFax(string faxLine, string recipient, string pdfPath)
         {
             var request = new SendFaxRequest
             {
@@ -87,8 +87,13 @@ namespace SipgateVirtualFax.Core.Sipgate
             };
             try
             {
-                var response = SendRequestWithResponse<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax", request).Result;
-                return response.SessionId;
+                var response = await SendRequestWithResponse<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax", request);
+                var faxId = response.SessionId;
+                if (faxId == null)
+                {
+                    throw new Exception("Apparently the fax was accepted by the API, but no sessionId was returned!");
+                }
+                return faxId;
             }
             catch (Exception e)
             {
