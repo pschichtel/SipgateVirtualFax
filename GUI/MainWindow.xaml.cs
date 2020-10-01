@@ -10,7 +10,7 @@ using System.Windows.Data;
 using CredentialManagement;
 using Microsoft.Win32;
 using PhoneNumbers;
-using SipgateVirtualFax;
+using SipgateVirtualFax.Core;
 
 namespace SipGateVirtualFaxGui
 {

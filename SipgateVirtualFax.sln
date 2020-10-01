@@ -1,8 +1,10 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SipgateVirtualFax", "SipgateVirtualFax\SipgateVirtualFax.csproj", "{2B9EF76D-361D-4F1E-B584-8FE0505EE649}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{2B9EF76D-361D-4F1E-B584-8FE0505EE649}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SipGateVirtualFaxGui", "SipGateVirtualFaxGui\SipGateVirtualFaxGui.csproj", "{31E36FCF-397A-424F-A961-1B04E76A566E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "GUI\GUI.csproj", "{31E36FCF-397A-424F-A961-1B04E76A566E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI", "CLI\CLI.csproj", "{D64C1006-BB58-4FDA-A351-E2B9B3F0635E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +20,9 @@ Global
 		{31E36FCF-397A-424F-A961-1B04E76A566E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31E36FCF-397A-424F-A961-1B04E76A566E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31E36FCF-397A-424F-A961-1B04E76A566E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D64C1006-BB58-4FDA-A351-E2B9B3F0635E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D64C1006-BB58-4FDA-A351-E2B9B3F0635E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D64C1006-BB58-4FDA-A351-E2B9B3F0635E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D64C1006-BB58-4FDA-A351-E2B9B3F0635E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

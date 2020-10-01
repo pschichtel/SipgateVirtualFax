@@ -5,6 +5,7 @@
         <UseWPF>true</UseWPF>
         <LangVersion>8</LangVersion>
         <TargetFramework>net48</TargetFramework>
+        <RootNamespace>SipGateVirtualFaxGui</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -18,12 +19,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\SipgateVirtualFax\SipgateVirtualFax.csproj" />
+      <PackageReference Include="CredentialManagement" Version="1.0.2" />
+      <PackageReference Include="libphonenumber-csharp" Version="8.12.10" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="CredentialManagement" Version="1.0.2" />
-      <PackageReference Include="libphonenumber-csharp" Version="8.12.10" />
+      <ProjectReference Include="..\Core\Core.csproj" />
     </ItemGroup>
 
 </Project>
