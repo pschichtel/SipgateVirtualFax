@@ -57,7 +57,6 @@ namespace SipGateVirtualFaxGui
     {
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
-        private string _pdfPath = "";
 
         public IEnumerable<Faxline> FaxLines => Sipgate.GetFaxLinesSync(LookupCredential());
 
@@ -95,50 +94,52 @@ namespace SipGateVirtualFaxGui
 
         public void ScanAndSend()
         {
-            if (Scan())
+            var scannedPdfPath = Scan();
+            if (scannedPdfPath != null)
             {
-                Send();
+                Send(scannedPdfPath);
             }
         }
 
         public void ChoosePdfAndSend()
         {
-            if (ChoosePdf())
+            var existingPdfPath = ChoosePdf();
+            if (existingPdfPath != null)
             {
-                Send();
+                Send(existingPdfPath);
             }
         }
 
-        private bool ChoosePdf()
+        private string? ChoosePdf()
         {
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "PDF Documents (*.pdf)|*.pdf"
             };
-            if (openFileDialog.ShowDialog() != true) return false;
-            _pdfPath = openFileDialog.FileName;
-            return true;
-
+            if (openFileDialog.ShowDialog() != true)
+            {
+                return null;
+            }
+            return openFileDialog.FileName;
         }
 
-        private bool Scan()
+        private string? Scan()
         {
             try
             {
                 var imagePath = Scanner.Scan(true).First();
                 var pdfPath = Path.ChangeExtension(imagePath, "pdf");
                 ImageToPdfConverter.Convert(imagePath, pdfPath);
-                _pdfPath = pdfPath;
-                return true;
+                return pdfPath;
             }
             catch (NoDocumentScannedException)
             {
                 MessageBox.Show("No document scanned!");
-                return false;
+                return null;
             }
         }
 
-        private void Send()
+        private void Send(string pdfPath)
         {
             var credential = LookupCredential();
             try
@@ -149,7 +150,7 @@ namespace SipGateVirtualFaxGui
                     MessageBox.Show("No fax line selected!");
                     return;
                 }
-                Sipgate.SendFax(faxLineId, _faxNumber, _pdfPath, credential);
+                Sipgate.SendFax(faxLineId, _faxNumber, pdfPath, credential);
                 MessageBox.Show("Successfully send the fax!");
             }
             catch (Exception e)
