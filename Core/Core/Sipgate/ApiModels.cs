@@ -23,13 +23,13 @@ namespace SipgateVirtualFax.Core.Sipgate
     public class Faxline
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string Id { get; }
 
         [JsonProperty("alias")]
-        public string Alias { get; set; }
+        public string Alias { get; }
 
         [JsonProperty("groupId")]
-        public string GroupId { get; set; }
+        public string GroupId { get; }
 
         [JsonConstructor]
         public Faxline(string id, string alias, string groupId)
@@ -78,7 +78,7 @@ namespace SipgateVirtualFax.Core.Sipgate
     public class SendFaxResponse
     {
         [JsonProperty("sessionId")]
-        public string SessionId { get; set; }
+        public string SessionId { get; }
 
         [JsonConstructor]
         public SendFaxResponse(string sessionId)
