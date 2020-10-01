@@ -11,6 +11,7 @@ using CredentialManagement;
 using Microsoft.Win32;
 using PhoneNumbers;
 using SipgateVirtualFax.Core;
+using SipgateVirtualFax.Core.Sipgate;
 
 namespace SipGateVirtualFaxGui
 {
