@@ -126,8 +126,8 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                string imagePath = Scanner.Scan(true).First();
-                string pdfPath = Path.ChangeExtension(imagePath, "pdf");
+                var imagePath = Scanner.Scan(true).First();
+                var pdfPath = Path.ChangeExtension(imagePath, "pdf");
                 ImageToPdfConverter.Convert(imagePath, pdfPath);
                 _pdfPath = pdfPath;
                 return true;
