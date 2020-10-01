@@ -35,7 +35,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 RequestUri = new Uri($"{_baseUrl}{path}"),
                 Headers =
                 {
-                    { "Authorization", _basicAuth }
+                    {"Authorization", _basicAuth}
                 },
                 Content = content
             };
@@ -78,22 +78,14 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         public async Task<string> SendFax(string faxLine, string recipient, string pdfPath)
         {
-            var request = new SendFaxRequest
-            {
-                FaxlineId = faxLine,
-                Recipient = recipient,
-                Filename = Path.GetFileName(pdfPath),
-                Content = Convert.ToBase64String(File.ReadAllBytes(pdfPath))
-            };
+            var request = new SendFaxRequest(faxLine, recipient, Path.GetFileName(pdfPath),
+                Convert.ToBase64String(File.ReadAllBytes(pdfPath)));
             try
             {
-                var response = await SendRequestWithResponse<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax", request);
-                var faxId = response.SessionId;
-                if (faxId == null)
-                {
-                    throw new Exception("Apparently the fax was accepted by the API, but no sessionId was returned!");
-                }
-                return faxId;
+                var response =
+                    await SendRequestWithResponse<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax",
+                        request);
+                return response.SessionId;
             }
             catch (Exception e)
             {
@@ -101,14 +93,10 @@ namespace SipgateVirtualFax.Core.Sipgate
             }
         }
 
-        public bool AttemptFaxResend(string faxId, string faxLine)
+        public Task<bool> AttemptFaxResend(string faxId, string faxlineId)
         {
-            var request = new ResendFaxRequest
-            {
-                FaxId = faxId,
-                FaxlineId = faxLine
-            };
-            return SendRequest(HttpMethod.Post, "/sessions/fax/resend", request).Result;
+            var request = new ResendFaxRequest(faxId, faxlineId);
+            return SendRequest(HttpMethod.Post, "/sessions/fax/resend", request);
         }
 
         public HistoryEntry GetHistoryEntry(string entryId)
@@ -120,7 +108,7 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             return GetFaxLines().Result;
         }
-        
+
         public Task<IEnumerable<Faxline>> GetFaxLines()
         {
             return SendRequest<IEnumerable<Faxline>>(HttpMethod.Get, "/groupfaxlines");
