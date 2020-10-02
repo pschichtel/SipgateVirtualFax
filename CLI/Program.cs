@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
 using SipgateVirtualFax.Core;
@@ -61,7 +60,8 @@ namespace SipgateVirtualFax.CLI
                 if (paths.Count == 0) 
                 {
                     Console.WriteLine("Scanning a document...");
-                    paths = Scanner.Scan(options.UseScannerUI);
+                    var scanner = new Scanner();
+                    paths = scanner.Scan(options.UseScannerUI);
                 }
                 documentPath = Path.ChangeExtension(paths.First(), "pdf");
                 Console.WriteLine("Converting the document into a PDF...");

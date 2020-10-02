@@ -51,6 +51,7 @@ namespace SipGateVirtualFaxGui
         private IEnumerable<Faxline>? _faxLines;
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
+        private Scanner _scanner = new Scanner();
 
         public IEnumerable<Faxline>? FaxLines
         {
@@ -96,7 +97,7 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                var paths = Scanner.Scan(true);
+                var paths = _scanner.Scan(true);
                 if (paths.Count > 0)
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");

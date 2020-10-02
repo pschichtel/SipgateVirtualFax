@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -11,6 +12,7 @@ namespace SipgateVirtualFax.Core.Sipgate
     {
         private const string DefaultBaseUrl = "https://api.sipgate.com/v2";
 
+        private readonly EventLog _eventLog = Logging.CreateEventLog("sipgate-client");
         private readonly string _baseUrl;
         private readonly string _basicAuth;
         private readonly HttpClient _client;
@@ -34,7 +36,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 File.WriteAllBytes(@"C:\Users\phill\Desktop\fax.json", c);
             }
             var url = $"{_baseUrl}{path}";
-            Console.WriteLine($"Request: {method} {url}");
+            _eventLog.Error($"Request: {method} {url}");
             var message = new HttpRequestMessage
             {
                 Method = method,
