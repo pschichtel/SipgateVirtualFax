@@ -157,6 +157,9 @@ namespace SipgateVirtualFax.Core.Sipgate
         public string DocumentPath { get; }
         public FaxStatus Status { get; private set; }
         public Exception? FailureCause { get; protected internal set; }
+        public readonly DateTime ScheduleTime = DateTime.Now;
+        public DateTime? SendTime { get; private set; }
+        public DateTime? CompleteTime { get; private set; }
 
         public delegate void StatusChangedHandler(FaxScheduler sender, FaxStatus newStatus);
         public event StatusChangedHandler? StatusChanged;
@@ -179,13 +182,31 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             if (newStatus != Status)
             {
+                var oldStatus = Status;
                 Status = newStatus;
                 if (newStatus.IsComplete())
                 {
                     _completed.SetResult(null);
                 }
+                if (newStatus == FaxStatus.Pending)
+                {
+                    SendTime = null;
+                    CompleteTime = null;
+                }
+
+                if (oldStatus == FaxStatus.Pending && newStatus == FaxStatus.Sending)
+                {
+                    SendTime = DateTime.Now;
+                }
+
+                if (newStatus.IsComplete())
+                {
+                    CompleteTime = DateTime.Now;
+                }
+                
                 StatusChanged?.Invoke(scheduler, newStatus);
             }
+
         }
 
         public Task AwaitCompletion()
