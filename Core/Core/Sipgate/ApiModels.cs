@@ -238,7 +238,8 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             Sent,
             Failed,
-            Sending
+            Sending,
+            Pending
         }
         
         public class FaxEntryStatusEnumConverter : JsonConverter<FaxEntryStatus>
@@ -250,6 +251,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                     FaxEntryStatus.Sent => "SENT",
                     FaxEntryStatus.Failed => "FAILED",
                     FaxEntryStatus.Sending => "SENDING",
+                    FaxEntryStatus.Pending => "PENDING",
                     _ => throw new JsonWriterException($"Unknown enum value: {value}")
                 };
                 
@@ -265,6 +267,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                     "SENT" => FaxEntryStatus.Sent,
                     "FAILED" => FaxEntryStatus.Failed,
                     "SENDING" => FaxEntryStatus.Sending,
+                    "PENDING" => FaxEntryStatus.Pending,
                     _ => throw new JsonReaderException($"Value was not a valid fax entry status: {val}")
                 };
             }
