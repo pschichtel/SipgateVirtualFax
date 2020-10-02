@@ -110,9 +110,9 @@ namespace SipgateVirtualFax.Core.Sipgate
             return SendRequest(HttpMethod.Post, "/sessions/fax/resend", request);
         }
 
-        public HistoryEntry GetHistoryEntry(string entryId)
+        public Task<HistoryEntry> GetHistoryEntry(string entryId)
         {
-            return SendRequest<HistoryEntry>(HttpMethod.Get, $"/history/{entryId}").Result;
+            return SendRequest<HistoryEntry>(HttpMethod.Get, $"/history/{entryId}");
         }
 
         public async Task<Faxline[]> GetFaxLines()

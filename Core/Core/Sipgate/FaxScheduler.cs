@@ -55,76 +55,77 @@ namespace SipgateVirtualFax.Core.Sipgate
                     return;
                 }
 
-                try
+                switch (fax.Status)
                 {
-                    switch (fax.Status)
+                    case FaxStatus.Pending:
+                        _sendFax(fax);
+                        break;
+                    case FaxStatus.Sending:
+                        _pollFaxStatus(fax);
+                        break;
+                }
+            }
+        }
+        
+        private async void _sendFax(TrackedFax fax)
+        {
+            try
+            {
+                if (fax.Id != null)
+                {
+                    var success = await _client.AttemptFaxResend(fax.Id, fax.Faxline.Id);
+                    if (!success)
                     {
-                        case FaxStatus.Pending:
-                            _sendFax(fax);
-                            break;
-                        case FaxStatus.Sending:
-                            _pollFaxStatus(fax);
-                            break;
+                        throw new Exception("Unable to resend the fax!");
                     }
                 }
-                catch (Exception e)
+                else
                 {
-                    fax.FailureCause = e;
-                    fax.ChangeStatus(this, FaxStatus.Unknown);
+                    fax.Id = await _client.SendFax(fax.Faxline.Id, fax.Recipient, fax.DocumentPath);
                 }
+
+                fax.ChangeStatus(this, FaxStatus.Sending);
+                _scheduleCompletionCheck(fax);
+            }
+            catch (Exception e)
+            {
+                fax.FailureCause = e;
+                fax.ChangeStatus(this, FaxStatus.Failed);
             }
         }
 
-        private void _sendFax(TrackedFax fax)
+        private async void _pollFaxStatus(TrackedFax fax)
         {
-            if (fax.Id != null)
+            try
             {
-                _client.AttemptFaxResend(fax.Id, fax.Faxline.Id)
-                    .ContinueWith(async success =>
-                    {
-                        if (await success)
-                        {
-                            fax.ChangeStatus(this, FaxStatus.Sending);
-                            _scheduleCompletionCheck(fax);
-                        }
-                    });
-            }
-            else
-            {
-                _client.SendFax(fax.Faxline.Id, fax.Recipient, fax.DocumentPath)
-                    .ContinueWith(async faxId =>
-                    {
-                        fax.Id = await faxId;
+                if (fax.Id == null)
+                {
+                    return;
+                }
+
+                var historyEntry = await _client.GetHistoryEntry(fax.Id);
+                switch (historyEntry.FaxStatus)
+                {
+                    case FaxEntryStatus.Sent:
+                        fax.ChangeStatus(this, FaxStatus.SuccessfullySent);
+                        break;
+                    case FaxEntryStatus.Failed:
+                        fax.ChangeStatus(this, FaxStatus.Failed);
+                        break;
+                    case FaxEntryStatus.Sending:
+                    case FaxEntryStatus.Pending:
                         fax.ChangeStatus(this, FaxStatus.Sending);
                         _scheduleCompletionCheck(fax);
-                    });
+                        break;
+                    default:
+                        fax.ChangeStatus(this, FaxStatus.Unknown);
+                        break;
+                }
             }
-        }
-
-        private void _pollFaxStatus(TrackedFax fax)
-        {
-            if (fax.Id == null)
+            catch (Exception e)
             {
-                return;
-            }
-            
-            var historyEntry = _client.GetHistoryEntry(fax.Id);
-            switch (historyEntry.FaxStatus)
-            {
-                case FaxEntryStatus.Sent:
-                    fax.ChangeStatus(this, FaxStatus.SuccessfullySent);
-                    break;
-                case FaxEntryStatus.Failed:
-                    fax.ChangeStatus(this, FaxStatus.Failed);
-                    break;
-                case FaxEntryStatus.Sending:
-                case FaxEntryStatus.Pending:
-                    fax.ChangeStatus(this, FaxStatus.Sending);
-                    _scheduleCompletionCheck(fax);
-                    break;
-                default:
-                    fax.ChangeStatus(this, FaxStatus.Unknown);
-                    break;
+                fax.FailureCause = e;
+                fax.ChangeStatus(this, FaxStatus.Unknown);
             }
         }
         
