@@ -111,9 +111,17 @@ namespace SipgateVirtualFax.CLI
                 {
                     using var scheduler = new FaxScheduler(faxClient);
                     var fax = scheduler.ScheduleFax(faxline, options.Recipient, documentPath);
-                    fax.StatusChanged += (sender, status) => { logger.Info($"Status changed: {status}"); };
+                    var completionSource = new TaskCompletionSource<object?>();
+                    fax.StatusChanged += (sender, status) =>
+                    {
+                        logger.Info($"Status changed: {status}");
+                        if (status.IsComplete())
+                        {
+                            completionSource.SetResult(null);
+                        }
+                    };
 
-                    await fax.AwaitCompletion();
+                    await completionSource.Task;
 
                     if (fax.FailureCause != null)
                     {
