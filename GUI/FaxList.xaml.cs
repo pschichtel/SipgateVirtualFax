@@ -24,12 +24,14 @@ namespace SipGateVirtualFaxGui
             var faxlines = await FaxStuff.Instance.FaxClient.GetFaxLines();
 
             _newFax.ViewModel.Initialize(faxlines);
-            var window = new Window()
+            var window = new Window
             {
                 Title = "New fax",
                 Content = _newFax,
                 SizeToContent = SizeToContent.Height,
-                Width = 500
+                Width = 500,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this)
             };
             window.ShowDialog();
 
