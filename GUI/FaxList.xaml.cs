@@ -41,15 +41,12 @@ namespace SipGateVirtualFaxGui
             var faxListItemViewModel = new FaxListItemViewModel(fax);
 
             var viewModel = (FaxListViewModel) DataContext;
-            viewModel.Items.Add(faxListItemViewModel);
+            viewModel.Items.Insert(0, faxListItemViewModel);
         }
     }
 
     public class FaxListViewModel : BaseViewModel
     {
-        // public SipgateFaxClient FaxClient { get; set; }
-        // public FaxScheduler FaxScheduler { get; set; }
-        
         public ObservableCollection<FaxListItemViewModel> Items { get; }
             = new ObservableCollection<FaxListItemViewModel>();
     }

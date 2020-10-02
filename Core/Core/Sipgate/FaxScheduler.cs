@@ -165,7 +165,7 @@ namespace SipgateVirtualFax.Core.Sipgate
         public string DocumentPath { get; }
         public FaxStatus Status { get; private set; }
         public Exception? FailureCause { get; protected internal set; }
-        public readonly DateTime ScheduleTime = DateTime.Now;
+        public DateTime ScheduleTime { get; } = DateTime.Now;
         public DateTime? SendTime { get; private set; }
         public DateTime? CompleteTime { get; private set; }
 
