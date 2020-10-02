@@ -48,16 +48,12 @@ namespace SipgateVirtualFax.Core.Sipgate
                 TrackedFax fax;
                 try
                 {
-                    Console.WriteLine("Polling the completion queue...");
                     fax = _trackingQueue.Take(_cancellation.Token);
                 }
                 catch (OperationCanceledException)
                 {
-                    Console.WriteLine("Tracking thread terminated!");
                     return;
                 }
-
-                Console.WriteLine($"Got a fax: {fax}");
 
                 try
                 {
