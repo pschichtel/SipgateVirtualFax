@@ -107,10 +107,10 @@ namespace SipGateVirtualFaxGui
                     ImageToPdfConverter.Convert(paths, pdfPath);
                     DocumentPath = pdfPath;
                 }
-            }
-            catch (NoDocumentScannedException)
-            {
-                MessageBox.Show("No document scanned!");
+                else
+                {
+                    MessageBox.Show("No document scanned!");
+                }
             }
             catch (Exception e)
             {

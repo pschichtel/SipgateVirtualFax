@@ -24,24 +24,6 @@ namespace SipgateVirtualFax.Core
             PlatformInfo.Current.PreferNewDSM = false;
         }
 
-        private ITwainSession CreateSession(MessageLoopHook? loopHook = null)
-        {
-            var session = new TwainSession(_appId)
-            {
-                StopOnTransferError = true
-            };
-            session.StateChanged += (s, e) => { _logger.Info($"State changed: {session.GetState()}"); };
-
-            var returnCode = loopHook == null ? session.Open() : session.Open(loopHook);
-
-            if (returnCode != ReturnCode.Success)
-            {
-                throw new Exception($"Failed to open session: {session}");
-            }
-            
-            return session;
-        }
-
         public Task<IList<string>> ScanWithDefault(bool showScannerUi)
         {
             return DoScan(null, showScannerUi);
@@ -55,7 +37,6 @@ namespace SipgateVirtualFax.Core
         private async Task<IList<string>> DoScan(Func<IDataSource, bool>? sourceFilter, bool showScannerUi)
         {
             var session = CreateSession();
-
 
             IDataSource? source;
             if (sourceFilter != null)
@@ -97,6 +78,42 @@ namespace SipgateVirtualFax.Core
                 throw new Exception("Failed to close session!");
             }
             return scans;
+        }
+
+        private ITwainSession CreateSession(MessageLoopHook? loopHook = null)
+        {
+            var session = new TwainSession(_appId)
+            {
+                StopOnTransferError = true
+            };
+            
+            LogState(session);
+            session.StateChanged += (s, e) => { LogState(session); };
+
+            var returnCode = loopHook == null ? session.Open() : session.Open(loopHook);
+
+            if (returnCode != ReturnCode.Success)
+            {
+                throw new Exception($"Failed to open session: {session}");
+            }
+            
+            return session;
+        }
+
+        private void LogState(ITwainSession session)
+        {
+            var stateName = session.State switch
+            {
+                1 => "Pre-Session",
+                2 => "Source Manager Loaded",
+                3 => "Source Manager Opened",
+                4 => "Source Open",
+                5 => "Source Enabled",
+                6 => "Transfer Ready",
+                7 => "Transferring",
+                _ => "Unknown State"
+            };
+            _logger.Info($"TWAIN session state: {stateName}");
         }
 
         enum ScanState
@@ -275,13 +292,6 @@ namespace SipgateVirtualFax.Core
             }
 
             return null;
-        }
-    }
-
-    public class NoDocumentScannedException : Exception
-    {
-        public NoDocumentScannedException(string message) : base(message)
-        {
         }
     }
 }
