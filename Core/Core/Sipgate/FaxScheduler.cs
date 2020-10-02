@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using static SipgateVirtualFax.Core.Sipgate.HistoryEntry;
 
 namespace SipgateVirtualFax.Core.Sipgate
@@ -13,12 +14,13 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         private volatile bool _shutdown;
         private readonly CancellationTokenSource _cancellation = new CancellationTokenSource();
-        
+        private readonly Logger _logger = Logging.GetLogger("fax-scheduler");
+
         public FaxScheduler(SipgateFaxClient client)
         {
             _client = client;
             _trackingQueue = new BlockingCollection<TrackedFax>(new ConcurrentQueue<TrackedFax>());
-            
+
             var tracker = new Thread(_trackThemAll)
             {
                 Name = "Fax Tracker"
@@ -66,7 +68,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 }
             }
         }
-        
+
         private async void _sendFax(TrackedFax fax)
         {
             try
@@ -89,6 +91,10 @@ namespace SipgateVirtualFax.Core.Sipgate
             }
             catch (Exception e)
             {
+                _logger.Error(e,
+                    fax.Id == null
+                        ? $"Failed to resend the fax with id {fax.Id}"
+                        : $"Failed to send a fax to {fax.Recipient}");
                 fax.FailureCause = e;
                 fax.ChangeStatus(this, FaxStatus.Failed);
             }
@@ -118,27 +124,32 @@ namespace SipgateVirtualFax.Core.Sipgate
                         _scheduleCompletionCheck(fax);
                         break;
                     default:
+                        _logger.Warn(
+                            $"Fax {fax.Id} (to {fax.Recipient}) is in an unexpected state, marking it as such");
                         fax.ChangeStatus(this, FaxStatus.Unknown);
                         break;
                 }
             }
             catch (Exception e)
             {
+                _logger.Error(e, $"Failed to poll the history of fax {fax.Id} (to {fax.Recipient})");
                 fax.FailureCause = e;
                 fax.ChangeStatus(this, FaxStatus.Unknown);
             }
         }
-        
+
         public TrackedFax ScheduleFax(Faxline faxline, string recipient, string documentPath)
         {
             if (_shutdown)
             {
                 throw new Exception("Already disposed!");
             }
+
             if (faxline.Id == null)
             {
                 throw new Exception("Invalid faxline given: The ID is required!");
             }
+
             if (!faxline.CanSend)
             {
                 throw new Exception("Invalid faxline given: Faxline cannot send!");
@@ -151,8 +162,7 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         public TrackedFax ResendFax(TrackedFax fax)
         {
-            var newFax = new TrackedFax(fax.Faxline, fax.Recipient, fax.DocumentPath, ResendFax);
-            newFax.Id = fax.Id;
+            var newFax = new TrackedFax(fax.Faxline, fax.Recipient, fax.DocumentPath, ResendFax) {Id = fax.Id};
             _trackingQueue.Add(newFax);
             return newFax;
         }
@@ -170,20 +180,22 @@ namespace SipgateVirtualFax.Core.Sipgate
         public DateTime? CompleteTime { get; private set; }
 
         public delegate void StatusChangedHandler(FaxScheduler sender, FaxStatus newStatus);
+
         public event StatusChangedHandler? StatusChanged;
 
         protected internal string? Id { get; set; }
         private readonly TaskCompletionSource<object?> _completed;
         private readonly Func<TrackedFax, TrackedFax> _resendCallback;
 
-        public TrackedFax(Faxline faxline, string recipient, string documentPath, Func<TrackedFax, TrackedFax> resendCallback)
+        public TrackedFax(Faxline faxline, string recipient, string documentPath,
+            Func<TrackedFax, TrackedFax> resendCallback)
         {
             _resendCallback = resendCallback;
             Faxline = faxline;
             Recipient = recipient;
             DocumentPath = documentPath;
             Status = FaxStatus.Pending;
-            
+
             Id = null;
             _completed = new TaskCompletionSource<object?>();
         }
@@ -198,6 +210,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 {
                     _completed.SetResult(null);
                 }
+
                 if (newStatus == FaxStatus.Pending)
                 {
                     SendTime = null;
@@ -213,10 +226,9 @@ namespace SipgateVirtualFax.Core.Sipgate
                 {
                     CompleteTime = DateTime.Now;
                 }
-                
+
                 StatusChanged?.Invoke(scheduler, newStatus);
             }
-
         }
 
         public Task AwaitCompletion()
@@ -231,7 +243,8 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         public override string ToString()
         {
-            return $"{nameof(Faxline)}: {Faxline}, {nameof(Recipient)}: {Recipient}, {nameof(DocumentPath)}: {DocumentPath}, {nameof(Id)}: {Id}, {nameof(Status)}: {Status}, {nameof(FailureCause)}: {FailureCause}";
+            return
+                $"{nameof(Faxline)}: {Faxline}, {nameof(Recipient)}: {Recipient}, {nameof(DocumentPath)}: {DocumentPath}, {nameof(Id)}: {Id}, {nameof(Status)}: {Status}, {nameof(FailureCause)}: {FailureCause}";
         }
     }
 
@@ -258,6 +271,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                     return false;
             }
         }
+
         public static bool CanResend(this FaxStatus status)
         {
             switch (status)

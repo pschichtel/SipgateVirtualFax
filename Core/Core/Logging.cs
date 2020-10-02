@@ -1,45 +1,45 @@
-using System.Diagnostics;
+using NLog;
+using NLog.Config;
+using NLog.Layouts;
+using NLog.Targets;
 
 namespace SipgateVirtualFax.Core
 {
     public static class Logging
     {
-        public static EventLog CreateEventLog(string? component = null)
+        private static volatile bool _initialized;
+
+        private static void SetupLogging()
         {
-            string name = "sipgate-virtual-fax";
-            if (component != null)
-            {
-                name = $"{name}-{component}";
-            }
-            return new EventLog("Application")
-            {
-                Source = name
+            var layout = new SimpleLayout("${longdate}|${logger}|${level:uppercase=true} - ${message}");
+            var config = new LoggingConfiguration();
+            Target[] targets = {
+                new FileTarget()
+                {
+                    FileName = "sipgate-virtual-fax.log",
+                    Layout = layout
+                },
+                new ConsoleTarget()
+                {
+                    Layout = layout
+                }
             };
+            foreach (var target in targets)
+            {
+                config.AddRule(LogLevel.Trace, LogLevel.Fatal, target);
+            }
+
+            LogManager.Configuration = config;
         }
 
-        public static void Info(this EventLog log, string msg)
+        public static Logger GetLogger(string name)
         {
-            log.WriteEntry(msg, EventLogEntryType.Information);
-        }
-
-        public static void Warning(this EventLog log, string msg)
-        {
-            log.WriteEntry(msg, EventLogEntryType.Warning);
-        }
-
-        public static void Error(this EventLog log, string msg)
-        {
-            log.WriteEntry(msg, EventLogEntryType.Error);
-        }
-
-        public static void SuccessAudit(this EventLog log, string msg)
-        {
-            log.WriteEntry(msg, EventLogEntryType.SuccessAudit);
-        }
-
-        public static void FailureAudit(this EventLog log, string msg)
-        {
-            log.WriteEntry(msg, EventLogEntryType.FailureAudit);
+            if (!_initialized)
+            {
+                _initialized = true;
+                SetupLogging();
+            }
+            return LogManager.GetLogger(name);
         }
     }
 }

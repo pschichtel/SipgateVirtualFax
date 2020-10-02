@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using NLog;
 using NTwain;
 using NTwain.Data;
 
@@ -13,7 +13,7 @@ namespace SipgateVirtualFax.Core
 {
     public class Scanner
     {
-        private readonly EventLog _eventLog = Logging.CreateEventLog("scanner");
+        private readonly Logger _eventLog = Logging.GetLogger("scanner");
         
         private void PrintState(TwainSession session)
         {
@@ -36,7 +36,7 @@ namespace SipgateVirtualFax.Core
             session.StateChanged += (sender, eventArgs) => { PrintState(session); };
             session.TransferError += (sender, eventArgs) =>
             {
-                _eventLog.Error($"Transfer error: {eventArgs.ReturnCode} - {eventArgs.Exception}");
+                _eventLog.Error(eventArgs.Exception, $"Transfer error: {eventArgs.ReturnCode}");
                 cause = eventArgs.Exception;
                 TriggerMonitor(ref programFinishedMonitor);
             };
@@ -150,7 +150,7 @@ namespace SipgateVirtualFax.Core
                 }
                 catch (Exception exception)
                 {
-                    _eventLog.Error($"Failed to write image to disk! - {exception}");
+                    _eventLog.Error(exception, "Failed to write image to disk!");
                     cause = exception;
                 }
 
