@@ -144,9 +144,15 @@ namespace SipgateVirtualFax.Core.Sipgate
                 throw new Exception("Invalid faxline given: Faxline cannot send!");
             }
 
-            var fax = new TrackedFax(faxline, recipient, documentPath);
+            var fax = new TrackedFax(faxline, recipient, documentPath, ResendFax);
             _trackingQueue.Add(fax);
             return fax;
+        }
+
+        public void ResendFax(TrackedFax fax)
+        {
+            fax.ChangeStatus(this, FaxStatus.Pending);
+            _trackingQueue.Add(fax);
         }
     }
 
@@ -166,9 +172,11 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         protected internal string? Id { get; set; }
         private readonly TaskCompletionSource<object?> _completed;
+        private readonly Action<TrackedFax> _resendCallback;
 
-        public TrackedFax(Faxline faxline, string recipient, string documentPath)
+        public TrackedFax(Faxline faxline, string recipient, string documentPath, Action<TrackedFax> resendCallback)
         {
+            _resendCallback = resendCallback;
             Faxline = faxline;
             Recipient = recipient;
             DocumentPath = documentPath;
@@ -216,7 +224,7 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         public void Resend()
         {
-            // TODO implement me
+            _resendCallback(this);
         }
 
         public override string ToString()
