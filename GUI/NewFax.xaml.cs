@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using Microsoft.Win32;
 using NLog;
 using SipgateVirtualFax.Core;
@@ -17,7 +18,13 @@ namespace SipGateVirtualFaxGui
         public NewFaxViewModel ViewModel { get; }
         public NewFax()
         {
-            ViewModel = new NewFaxViewModel();
+            var window = Window.GetWindow(this);
+            IntPtr handle = IntPtr.Zero;
+            if (window != null)
+            {
+                handle = new WindowInteropHelper(window).Handle;
+            }
+            ViewModel = new NewFaxViewModel(handle);
             DataContext = ViewModel;
             InitializeComponent();
         }
@@ -53,8 +60,17 @@ namespace SipGateVirtualFaxGui
         private IEnumerable<Faxline>? _faxLines;
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
-        private readonly Scanner _scanner = new Scanner();
+        private readonly Scanner _scanner;
         private readonly Logger _logger = Logging.GetLogger("gui-newfax-vm");
+
+        public NewFaxViewModel(IntPtr parentWindowHandle)
+        {
+            _scanner = new Scanner()
+            {
+                ShowUi = true,
+                ParentWindow = parentWindowHandle
+            };
+        }
 
         public IEnumerable<Faxline>? FaxLines
         {
@@ -100,7 +116,7 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                var paths = await _scanner.ScanWithDefault(true);
+                var paths = await _scanner.ScanWithDefault();
                 if (paths.Count > 0)
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");

@@ -15,8 +15,18 @@ namespace SipgateVirtualFax.Core
 {
     public class Scanner
     {
+        private const int PreSession = 1;
+        private const int SourceManagerLoaded = 2;
+        private const int SourceManagerOpened = 3;
+        private const int SourceOpen = 4;
+        private const int SourceEnabled = 5;
+        private const int TransferReady = 6;
+        private const int Transferring = 7;
+        
         private readonly Logger _logger = Logging.GetLogger("scanner");
         private readonly TWIdentity _appId;
+        public bool ShowUi { get; set; } = true;
+        public IntPtr ParentWindow { get; set; } = IntPtr.Zero;
 
         public Scanner()
         {
@@ -24,17 +34,17 @@ namespace SipgateVirtualFax.Core
             PlatformInfo.Current.PreferNewDSM = false;
         }
 
-        public Task<IList<string>> ScanWithDefault(bool showScannerUi)
+        public Task<IList<string>> ScanWithDefault()
         {
-            return DoScan(null, showScannerUi);
+            return DoScan(null);
         }
 
-        public Task<IList<string>> Scan(Func<IDataSource, bool> sourceFilter, bool showScannerUi)
+        public Task<IList<string>> Scan(Func<IDataSource, bool> sourceFilter)
         {
-            return DoScan(sourceFilter, showScannerUi);
+            return DoScan(sourceFilter);
         }
 
-        private async Task<IList<string>> DoScan(Func<IDataSource, bool>? sourceFilter, bool showScannerUi)
+        private async Task<IList<string>> DoScan(Func<IDataSource, bool>? sourceFilter)
         {
             var session = CreateSession();
 
@@ -65,7 +75,7 @@ namespace SipgateVirtualFax.Core
             _logger.Info($"Enabled source {source.Name} successfully!");
             try
             {
-                return await EnableSourceAndCollectScans(session, source, showScannerUi);
+                return await EnableSourceAndCollectScans(session, source);
             }
             finally
             {
@@ -109,90 +119,54 @@ namespace SipgateVirtualFax.Core
         {
             var stateName = session.State switch
             {
-                1 => "Pre-Session",
-                2 => "Source Manager Loaded",
-                3 => "Source Manager Opened",
-                4 => "Source Open",
-                5 => "Source Enabled",
-                6 => "Transfer Ready",
-                7 => "Transferring",
+                PreSession => "Pre-Session",
+                SourceManagerLoaded => "Source Manager Loaded",
+                SourceManagerOpened => "Source Manager Opened",
+                SourceOpen => "Source Open",
+                SourceEnabled => "Source Enabled",
+                TransferReady => "Transfer Ready",
+                Transferring => "Transferring",
                 _ => "Unknown State"
             };
             _logger.Info($"TWAIN session state: {stateName}");
         }
 
-        enum ScanState
-        {
-            Start,
-            Ready,
-            Received,
-        }
-
-        private Task<IList<string>> EnableSourceAndCollectScans(ITwainSession session, IDataSource source, bool showScannerUi)
+        private Task<IList<string>> EnableSourceAndCollectScans(ITwainSession session, IDataSource source)
         {
             TaskCompletionSource<IList<string>> completionSource = new TaskCompletionSource<IList<string>>();
-            var uiMode = showScannerUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
             ConcurrentQueue<string> scannedFiles = new ConcurrentQueue<string>();
 
-            var state = ScanState.Start;
-            
             void TransferReady(object sender, TransferReadyEventArgs e)
             {
-                _logger.Info($"Transfer ready from source {e.DataSource.Name}");
-                _logger.Info($"End? -> {e.EndOfJob} -> {e.EndOfJobFlag}");
-                //e.DataSource.Capabilities.CapFeederEnabled.SetValue(BoolType.True);
-                switch (state)
-                {
-                    case ScanState.Start:
-                        _logger.Info("Initially ready!");
-                        PrintCapabilities(e.DataSource);
-                        state = ScanState.Ready;
-                        break;
-                    case ScanState.Received:
-                        _logger.Info("Ready after receiving a scan!");
-                        break;
-                    default:
-                        Fail(new Exception($"Illegal state in TransferReady: {state}"));
-                        break;
-                }
             }
 
             void ProcessData(object o, DataTransferredEventArgs e)
             {
-                switch (state)
+                _logger.Info($"Received data from source {e.DataSource.Name}");
+                var img = GetTransferredImage(e);
+
+                if (img == null)
                 {
-                    case ScanState.Ready:
-                        _logger.Info($"Received data from source {e.DataSource.Name}");
-                        var img = GetTransferredImage(e);
-
-                        if (img == null)
-                        {
-                            _logger.Error("Failed to create image from transferred data!");
-                            completionSource.SetException(new Exception("Failed to create an image from data"));
-                            return;
-                        }
-
-                        var date = DateTime.Now.ToString("yyyy-MM-dd-HHmmss-fff");
-                        var fileName = $"fax-scan-{date}.png";
-
-                        string targetPath = Path.Combine(Path.GetTempPath(), fileName);
-                        try
-                        {
-                            img.Save(targetPath, ImageFormat.Png);
-                            _logger.Info($"Saved scan at {targetPath} for transmission!");
-                            scannedFiles.Enqueue(targetPath);
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.Error(exception, "Failed to write image to disk!");
-                            Fail(exception);
-                        }
-                        break;
-                    default:
-                        Fail(new Exception($"Illegal state in DataTransferred: {state}"));
-                        break;
+                    _logger.Error("Failed to create image from transferred data!");
+                    completionSource.SetException(new Exception("Failed to create an image from data"));
+                    return;
                 }
 
+                var date = DateTime.Now.ToString("yyyy-MM-dd-HHmmss-fff");
+                var fileName = $"fax-scan-{date}.png";
+
+                string targetPath = Path.Combine(Path.GetTempPath(), fileName);
+                try
+                {
+                    img.Save(targetPath, ImageFormat.Png);
+                    _logger.Info($"Saved scan at {targetPath} for transmission!");
+                    scannedFiles.Enqueue(targetPath);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Error(exception, "Failed to write image to disk!");
+                    Fail(exception);
+                }
             }
 
             void TransferError(object sender, TransferErrorEventArgs args)
@@ -203,15 +177,7 @@ namespace SipgateVirtualFax.Core
 
             void SourceDisabled(object sender, EventArgs args)
             {
-                switch (state)
-                {
-                    case ScanState.Ready:
-                        Complete(scannedFiles.ToList());
-                        break;
-                    default:
-                        Fail(new Exception($"Illegal state in DataTransferred: {state}"));
-                        break;
-                }
+                Complete(scannedFiles.ToList());
             }
 
             void Cleanup()
@@ -222,10 +188,10 @@ namespace SipgateVirtualFax.Core
                 session.SourceDisabled -= SourceDisabled;
             }
 
-            void Complete(IList<string> result)
+            void Complete(IList<string> files)
             {
                 Cleanup();
-                completionSource.SetResult(result);
+                completionSource.SetResult(files);
             }
 
             void Fail(Exception e)
@@ -248,9 +214,12 @@ namespace SipgateVirtualFax.Core
             session.TransferError += TransferError;
             session.SourceDisabled += SourceDisabled;
 
-            if (source.Enable(uiMode, false, IntPtr.Zero) != ReturnCode.Success)
+            var uiMode = ShowUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
+            _logger.Info("Enabling source...");
+            var result = source.Enable(uiMode, true, ParentWindow);
+            if (result != ReturnCode.Success)
             {
-                throw new Exception("Failed to enable data source!");
+                throw new Exception($"Failed to enable data source: {result}");
             }
 
             return completionSource.Task;
