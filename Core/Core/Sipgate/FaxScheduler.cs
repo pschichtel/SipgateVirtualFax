@@ -149,10 +149,12 @@ namespace SipgateVirtualFax.Core.Sipgate
             return fax;
         }
 
-        public void ResendFax(TrackedFax fax)
+        public TrackedFax ResendFax(TrackedFax fax)
         {
-            fax.ChangeStatus(this, FaxStatus.Pending);
-            _trackingQueue.Add(fax);
+            var newFax = new TrackedFax(fax.Faxline, fax.Recipient, fax.DocumentPath, ResendFax);
+            newFax.Id = fax.Id;
+            _trackingQueue.Add(newFax);
+            return newFax;
         }
     }
 
@@ -172,9 +174,9 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         protected internal string? Id { get; set; }
         private readonly TaskCompletionSource<object?> _completed;
-        private readonly Action<TrackedFax> _resendCallback;
+        private readonly Func<TrackedFax, TrackedFax> _resendCallback;
 
-        public TrackedFax(Faxline faxline, string recipient, string documentPath, Action<TrackedFax> resendCallback)
+        public TrackedFax(Faxline faxline, string recipient, string documentPath, Func<TrackedFax, TrackedFax> resendCallback)
         {
             _resendCallback = resendCallback;
             Faxline = faxline;
@@ -222,9 +224,9 @@ namespace SipgateVirtualFax.Core.Sipgate
             return _completed.Task;
         }
 
-        public void Resend()
+        public TrackedFax Resend()
         {
-            _resendCallback(this);
+            return _resendCallback(this);
         }
 
         public override string ToString()
