@@ -11,7 +11,7 @@ namespace SipgateVirtualFax.Core
 
         private static void SetupLogging()
         {
-            var layout = new SimpleLayout("${longdate}|${logger}|${level:uppercase=true} - ${message}");
+            var layout = new SimpleLayout("${longdate}|${logger}|${level:uppercase=true} - ${message} ${exception:format=ToString,StackTrace}");
             var config = new LoggingConfiguration();
             Target[] targets = {
                 new FileTarget()

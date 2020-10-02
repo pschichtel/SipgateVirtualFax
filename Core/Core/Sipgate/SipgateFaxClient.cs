@@ -30,10 +30,10 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         private async Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent? content)
         {
-            if (content != null)
+            if (_logger.IsTraceEnabled && content != null)
             {
                 var c = await content.ReadAsByteArrayAsync();
-                File.WriteAllBytes(@"C:\Users\phill\Desktop\fax.json", c);
+                _logger.Trace(Encoding.UTF8.GetString(c));
             }
             var url = $"{_baseUrl}{path}";
             _logger.Info($"Request: {method} {url}");

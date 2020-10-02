@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using NLog;
@@ -13,57 +14,95 @@ namespace SipgateVirtualFax.Core
 {
     public class Scanner
     {
-        private readonly Logger _eventLog = Logging.GetLogger("scanner");
-        
-        private void PrintState(TwainSession session)
+        private readonly Logger _logger = Logging.GetLogger("scanner");
+        private readonly TWIdentity _appId;
+
+        public Scanner()
         {
-            _eventLog.Info($"State changed: {session.GetState()}");
+            _appId = TWIdentity.CreateFromAssembly(DataGroups.Image, Assembly.GetExecutingAssembly());
+            PlatformInfo.Current.PreferNewDSM = false;
         }
 
-        public IList<string> Scan(bool showScannerUi)
+        private void PrintState(TwainSession session)
         {
-            PlatformInfo.Current.PreferNewDSM = false;
-            var appId = TWIdentity.CreateFromAssembly(DataGroups.Image, Assembly.GetExecutingAssembly());
-            var session = new TwainSession(appId) { StopOnTransferError = true };
+            _logger.Info($"State changed: {session.GetState()}");
+        }
 
-            var programFinishedMonitor = new object();
+        private TwainSession CreateSession()
+        {
+            return new TwainSession(_appId) {StopOnTransferError = true};
+        }
 
-            PrintState(session);
+        public IList<string> ScanWithDefault(bool showScannerUi)
+        {
+            return DoScan(null, showScannerUi);
+        }
 
-            IList<string> output = new List<string>();
-            Exception? cause = null;
+        public IList<string> Scan(Func<IDataSource, bool> sourceFilter, bool showScannerUi)
+        {
 
-            session.StateChanged += (sender, eventArgs) => { PrintState(session); };
-            session.TransferError += (sender, eventArgs) =>
-            {
-                _eventLog.Error(eventArgs.Exception, $"Transfer error: {eventArgs.ReturnCode}");
-                cause = eventArgs.Exception;
-                TriggerMonitor(ref programFinishedMonitor);
-            };
-            session.SourceDisabled += (sender, eventArgs) =>
-            {
-                session.CurrentSource.Close();
-                _eventLog.Info($"Source disabled!");
-                TriggerMonitor(ref programFinishedMonitor);
-            };
-            session.TransferReady += (sender, e) =>
-            {
-                _eventLog.Info($"Transfer ready from source {e.DataSource.Name}");
-                _eventLog.Info($"End? -> {e.EndOfJob} -> {e.EndOfJobFlag}");
-                PrintCapabilities(e.DataSource);
-                //e.DataSource.Capabilities.CapFeederEnabled.SetValue(BoolType.True);
-            };
+            return DoScan(null, showScannerUi);
+        }
 
-            session.DataTransferred += (sender, e) => { ProcessReceivedData(e, ref programFinishedMonitor, ref output, ref cause); };
-
+        private IList<string> DoScan(Func<IDataSource, bool>? sourceFilter, bool showScannerUi)
+        {
+            var session = CreateSession();
             try
             {
+                var programFinishedMonitor = new object();
+
+                PrintState(session);
+
+                IList<string> output = new List<string>();
+                Exception? cause = null;
+
+                session.StateChanged += (sender, eventArgs) => { PrintState(session); };
+                session.TransferError += (sender, eventArgs) =>
+                {
+                    _logger.Error(eventArgs.Exception, $"Transfer error: {eventArgs.ReturnCode}");
+                    cause = eventArgs.Exception;
+                    TriggerMonitor(ref programFinishedMonitor);
+                };
+                session.SourceDisabled += (sender, eventArgs) =>
+                {
+                    session.CurrentSource.Close();
+                    _logger.Info($"Source disabled!");
+                    TriggerMonitor(ref programFinishedMonitor);
+                };
+                session.TransferReady += (sender, e) =>
+                {
+                    _logger.Info($"Transfer ready from source {e.DataSource.Name}");
+                    _logger.Info($"End? -> {e.EndOfJob} -> {e.EndOfJobFlag}");
+                    PrintCapabilities(e.DataSource);
+                    //e.DataSource.Capabilities.CapFeederEnabled.SetValue(BoolType.True);
+                };
+
+                session.DataTransferred += (sender, e) =>
+                {
+                    ProcessReceivedData(e, ref programFinishedMonitor, ref output, ref cause);
+                };
+
                 if (session.Open() != ReturnCode.Success)
                 {
                     throw new Exception("Failed to open TWAIN session!");
                 }
 
-                DataSource source = session.DefaultSource;
+                IDataSource? source;
+                if (sourceFilter != null)
+                {
+                    source = session.GetSources()
+                        .First(sourceFilter);
+                }
+                else
+                {
+                    source = session.DefaultSource;
+                }
+                
+                if (source == null)
+                {
+                    throw new Exception("Source not found!");
+                }
+                
                 if (source.Open() != ReturnCode.Success)
                 {
                     throw new Exception("Failed to open data source!");
@@ -86,14 +125,19 @@ namespace SipgateVirtualFax.Core
                     throw new NoDocumentScannedException(cause);
                 }
 
-                _eventLog.Info($"Enabled device {source.Name} successfully!");
+                _logger.Info($"Enabled device {source.Name} successfully!");
                 return output;
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to scan!");
+                throw;
             }
             finally
             {
                 if (session.IsDsmOpen)
                 {
-                    _eventLog.Info("Closing...");
+                    _logger.Info("Closing...");
                     session.Close();
                 }
             }
@@ -109,17 +153,18 @@ namespace SipgateVirtualFax.Core
         {
             static string SupportedActions<T>(IReadOnlyCapWrapper<T> cap)
             {
-                return $"GET={cap.CanGet} SET={cap.CanSet} GET_DEFAULT={cap.CanGetDefault} GET_CURRENT={cap.CanGetCurrent}";
+                return
+                    $"GET={cap.CanGet} SET={cap.CanSet} GET_DEFAULT={cap.CanGetDefault} GET_CURRENT={cap.CanGetCurrent}";
             }
 
             void RoCap<T>(string name, IReadOnlyCapWrapper<T> cap)
             {
-                _eventLog.Info($"Capability (read-only): {name}={cap.GetCurrent()} ({SupportedActions(cap)})");
+                _logger.Info($"Capability (read-only): {name}={cap.GetCurrent()} ({SupportedActions(cap)})");
             }
 
             void RwCap<T>(string name, ICapWrapper<T> cap)
             {
-                _eventLog.Info($"Capability: {name}={cap.GetCurrent()} ({SupportedActions(cap)})");
+                _logger.Info($"Capability: {name}={cap.GetCurrent()} ({SupportedActions(cap)})");
             }
 
             RoCap("PaperDetectable", source.Capabilities.CapPaperDetectable);
@@ -132,7 +177,8 @@ namespace SipgateVirtualFax.Core
             RoCap("UIControllable", source.Capabilities.CapUIControllable);
         }
 
-        private void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor, ref IList<string> output, ref Exception? cause)
+        private void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor,
+            ref IList<string> output, ref Exception? cause)
         {
             Image? img = GetTransferredImage(e);
 
@@ -145,12 +191,12 @@ namespace SipgateVirtualFax.Core
                 try
                 {
                     img.Save(targetPath, ImageFormat.Png);
-                    _eventLog.Info($"Saved scan at {targetPath} for transmission!");
+                    _logger.Info($"Saved scan at {targetPath} for transmission!");
                     output.Add(targetPath);
                 }
                 catch (Exception exception)
                 {
-                    _eventLog.Error(exception, "Failed to write image to disk!");
+                    _logger.Error(exception, "Failed to write image to disk!");
                     cause = exception;
                 }
 
@@ -158,10 +204,10 @@ namespace SipgateVirtualFax.Core
             }
             else
             {
-                _eventLog.Error("Failed to create image from transferred data!");
+                _logger.Error("Failed to create image from transferred data!");
             }
 
-            _eventLog.Info($"Received data from source {e.DataSource.Name}");
+            _logger.Info($"Received data from source {e.DataSource.Name}");
         }
 
         private static Image? GetTransferredImage(DataTransferredEventArgs e)
@@ -190,9 +236,11 @@ namespace SipgateVirtualFax.Core
             }
         }
     }
-    
+
     public class NoDocumentScannedException : Exception
     {
-        public NoDocumentScannedException(Exception? cause) : base("No document scanned!", cause) { }
+        public NoDocumentScannedException(Exception? cause) : base("No document scanned!", cause)
+        {
+        }
     }
 }

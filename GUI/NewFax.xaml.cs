@@ -97,7 +97,7 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                var paths = _scanner.Scan(true);
+                var paths = _scanner.ScanWithDefault(true);
                 if (paths.Count > 0)
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
