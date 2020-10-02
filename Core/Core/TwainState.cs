@@ -1,6 +1,6 @@
 namespace SipgateVirtualFax.Core
 {
-    enum TwainState
+    public enum TwainState
     {
         PreSession = 1,
         SourceManagerLoaded = 2,

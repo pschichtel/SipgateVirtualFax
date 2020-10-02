@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 
@@ -26,10 +28,10 @@ namespace SipGateVirtualFaxGui
             FaxNumber.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
         }
 
-        private void ScanButton_OnClick(object sender, RoutedEventArgs e)
+        private async void ScanButton_OnClick(object sender, RoutedEventArgs e)
         {
             var vm = (NewFaxViewModel) DataContext;
-            vm.ScanAndSend();
+            await vm.ScanAndSend();
             Close();
         }
 
@@ -51,7 +53,8 @@ namespace SipGateVirtualFaxGui
         private IEnumerable<Faxline>? _faxLines;
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
-        private Scanner _scanner = new Scanner();
+        private readonly Scanner _scanner = new Scanner();
+        private readonly Logger _logger = Logging.GetLogger("gui-newfax-vm");
 
         public IEnumerable<Faxline>? FaxLines
         {
@@ -93,11 +96,11 @@ namespace SipGateVirtualFaxGui
             DocumentPath = null;
         }
 
-        public void ScanAndSend()
+        public async Task ScanAndSend()
         {
             try
             {
-                var paths = _scanner.ScanWithDefault(true);
+                var paths = await _scanner.ScanWithDefault(true);
                 if (paths.Count > 0)
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
@@ -108,6 +111,11 @@ namespace SipGateVirtualFaxGui
             catch (NoDocumentScannedException)
             {
                 MessageBox.Show("No document scanned!");
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Scanning failed");
+                MessageBox.Show("Scanning failed!");
             }
         }
 

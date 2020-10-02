@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using NTwain;
@@ -24,131 +24,205 @@ namespace SipgateVirtualFax.Core
             PlatformInfo.Current.PreferNewDSM = false;
         }
 
-        private void PrintState(TwainSession session)
+        private ITwainSession CreateSession(MessageLoopHook? loopHook = null)
         {
-            _logger.Info($"State changed: {session.GetState()}");
+            var session = new TwainSession(_appId)
+            {
+                StopOnTransferError = true
+            };
+            session.StateChanged += (s, e) => { _logger.Info($"State changed: {session.GetState()}"); };
+
+            var returnCode = loopHook == null ? session.Open() : session.Open(loopHook);
+
+            if (returnCode != ReturnCode.Success)
+            {
+                throw new Exception($"Failed to open session: {session}");
+            }
+            
+            return session;
         }
 
-        private TwainSession CreateSession()
-        {
-            return new TwainSession(_appId) {StopOnTransferError = true};
-        }
-
-        public IList<string> ScanWithDefault(bool showScannerUi)
+        public Task<IList<string>> ScanWithDefault(bool showScannerUi)
         {
             return DoScan(null, showScannerUi);
         }
 
-        public IList<string> Scan(Func<IDataSource, bool> sourceFilter, bool showScannerUi)
+        public Task<IList<string>> Scan(Func<IDataSource, bool> sourceFilter, bool showScannerUi)
         {
-
             return DoScan(sourceFilter, showScannerUi);
         }
 
-        private IList<string> DoScan(Func<IDataSource, bool>? sourceFilter, bool showScannerUi)
+        private async Task<IList<string>> DoScan(Func<IDataSource, bool>? sourceFilter, bool showScannerUi)
         {
             var session = CreateSession();
-            IDataSource? source = null;
-            try
+
+
+            IDataSource? source;
+            if (sourceFilter != null)
             {
-                var programFinishedMonitor = new object();
-
-                PrintState(session);
-
-                IList<string> output = new List<string>();
-                Exception? cause = null;
-
-                session.StateChanged += (sender, eventArgs) => { PrintState(session); };
-                session.TransferError += (sender, eventArgs) =>
-                {
-                    _logger.Error(eventArgs.Exception, $"Transfer error: {eventArgs.ReturnCode}");
-                    cause = eventArgs.Exception;
-                    TriggerMonitor(ref programFinishedMonitor);
-                };
-                session.SourceDisabled += (sender, eventArgs) =>
-                {
-                    session.CurrentSource.Close();
-                    _logger.Info($"Source disabled!");
-                    TriggerMonitor(ref programFinishedMonitor);
-                };
-                session.TransferReady += (sender, e) =>
-                {
-                    _logger.Info($"Transfer ready from source {e.DataSource.Name}");
-                    _logger.Info($"End? -> {e.EndOfJob} -> {e.EndOfJobFlag}");
-                    PrintCapabilities(e.DataSource);
-                    //e.DataSource.Capabilities.CapFeederEnabled.SetValue(BoolType.True);
-                };
-
-                session.DataTransferred += (sender, e) =>
-                {
-                    ProcessReceivedData(e, ref programFinishedMonitor, ref output, ref cause);
-                };
-
-                if (session.Open() != ReturnCode.Success)
-                {
-                    throw new Exception("Failed to open TWAIN session!");
-                }
-
-                if (sourceFilter != null)
-                {
-                    source = session.GetSources()
-                        .First(sourceFilter);
-                }
-                else
-                {
-                    source = session.DefaultSource;
-                }
-                
-                if (source == null)
-                {
-                    throw new Exception("Source not found!");
-                }
-                
-                if (source.Open() != ReturnCode.Success)
-                {
-                    throw new Exception("Failed to open data source!");
-                }
-
-                var uiMode = showScannerUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
-                PrintCapabilities(source);
-                if (source.Enable(uiMode, false, IntPtr.Zero) != ReturnCode.Success)
-                {
-                    throw new Exception("Failed to enable data source!");
-                }
-
-                lock (programFinishedMonitor)
-                {
-                    Monitor.Wait(programFinishedMonitor);
-                }
-
-                if (output.Count == 0)
-                {
-                    throw new NoDocumentScannedException(cause);
-                }
-
-                _logger.Info($"Enabled device {source.Name} successfully!");
-                return output;
+                source = session.GetSources()
+                    .First(sourceFilter);
             }
-            catch (Exception e)
+            else
             {
-                _logger.Error(e, "Failed to scan!");
-                throw;
+                source = session.DefaultSource;
             }
-            finally
-            {
-                _logger.Info("Closing...");
-                if (source != null && source.IsOpen)
-                {
-                    source.Close();
-                }
 
-                if (session.IsSourceEnabled && session.CurrentSource.IsOpen)
-                {
-                    session.CurrentSource.Close();
-                }
-                
+
+            if (source == null)
+            {
                 session.Close();
+                throw new Exception("Source not found!");
             }
+
+            if (source.Open() != ReturnCode.Success)
+            {
+                session.Close();
+                throw new Exception("Failed to open source!");
+            }
+            
+            _logger.Info($"Enabled source {source.Name} successfully!");
+            var scans = await EnableSourceAndCollectScans(session, source, showScannerUi);
+
+            _logger.Info("Closing source...");
+            if (source.Close() != ReturnCode.Success)
+            {
+                session.Close();
+                throw new Exception("Failed to close source!");
+            }
+
+            _logger.Info("Closing session...");
+            if (session.Close() != ReturnCode.Success)
+            {
+                throw new Exception("Failed to close session!");
+            }
+            return scans;
+        }
+
+        enum ScanState
+        {
+            Start,
+            Ready,
+            Received,
+        }
+
+        private Task<IList<string>> EnableSourceAndCollectScans(ITwainSession session, IDataSource source, bool showScannerUi)
+        {
+            TaskCompletionSource<IList<string>> completionSource = new TaskCompletionSource<IList<string>>();
+            var uiMode = showScannerUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
+            ConcurrentQueue<string> scannedFiles = new ConcurrentQueue<string>();
+
+            var state = ScanState.Start;
+            
+            void TransferReady(object sender, TransferReadyEventArgs e)
+            {
+                _logger.Info($"Transfer ready from source {e.DataSource.Name}");
+                _logger.Info($"End? -> {e.EndOfJob} -> {e.EndOfJobFlag}");
+                //e.DataSource.Capabilities.CapFeederEnabled.SetValue(BoolType.True);
+                switch (state)
+                {
+                    case ScanState.Start:
+                        _logger.Info("Initially ready!");
+                        PrintCapabilities(e.DataSource);
+                        state = ScanState.Ready;
+                        break;
+                    case ScanState.Received:
+                        _logger.Info("Ready after receiving a scan!");
+                        break;
+                    default:
+                        Fail(new Exception($"Illegal state in TransferReady: {state}"));
+                        break;
+                }
+            }
+
+            void ProcessData(object o, DataTransferredEventArgs e)
+            {
+                switch (state)
+                {
+                    case ScanState.Ready:
+                        _logger.Info($"Received data from source {e.DataSource.Name}");
+                        var img = GetTransferredImage(e);
+
+                        if (img == null)
+                        {
+                            _logger.Error("Failed to create image from transferred data!");
+                            completionSource.SetException(new Exception("Failed to create an image from data"));
+                            return;
+                        }
+
+                        var date = DateTime.Now.ToString("yyyy-MM-dd-HHmmss-fff");
+                        var fileName = $"fax-scan-{date}.png";
+
+                        string targetPath = Path.Combine(Path.GetTempPath(), fileName);
+                        try
+                        {
+                            img.Save(targetPath, ImageFormat.Png);
+                            _logger.Info($"Saved scan at {targetPath} for transmission!");
+                            scannedFiles.Enqueue(targetPath);
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Error(exception, "Failed to write image to disk!");
+                            Fail(exception);
+                        }
+                        break;
+                    default:
+                        Fail(new Exception($"Illegal state in DataTransferred: {state}"));
+                        break;
+                }
+
+            }
+
+            void TransferError(object sender, TransferErrorEventArgs args)
+            {
+                _logger.Error(args.Exception, "TransferError");
+                completionSource.SetException(args.Exception);
+            }
+
+            void SourceDisabled(object sender, EventArgs args)
+            {
+                switch (state)
+                {
+                    case ScanState.Ready:
+                        Complete(scannedFiles.ToList());
+                        break;
+                    default:
+                        Fail(new Exception($"Illegal state in DataTransferred: {state}"));
+                        break;
+                }
+            }
+
+            void Cleanup()
+            {
+                session.TransferReady -= TransferReady;
+                session.DataTransferred -= ProcessData;
+                session.TransferError -= TransferError;
+                session.SourceDisabled -= SourceDisabled;
+            }
+
+            void Complete(IList<string> result)
+            {
+                Cleanup();
+                completionSource.SetResult(result);
+            }
+
+            void Fail(Exception e)
+            {
+                Cleanup();
+                completionSource.SetException(e);
+            }
+
+            session.TransferReady += TransferReady;
+            session.DataTransferred += ProcessData;
+            session.TransferError += TransferError;
+            session.SourceDisabled += SourceDisabled;
+
+            if (source.Enable(uiMode, false, IntPtr.Zero) != ReturnCode.Success)
+            {
+                throw new Exception("Failed to enable data source!");
+            }
+
+            return completionSource.Task;
         }
 
         private void SetCapability<T>(IDataSource source, Func<ICapabilities, ICapWrapper<T>> cap, T value)
@@ -185,39 +259,6 @@ namespace SipgateVirtualFax.Core
             RoCap("UIControllable", source.Capabilities.CapUIControllable);
         }
 
-        private void ProcessReceivedData(DataTransferredEventArgs e, ref object programFinishedMonitor,
-            ref IList<string> output, ref Exception? cause)
-        {
-            Image? img = GetTransferredImage(e);
-
-            if (img != null)
-            {
-                var date = DateTime.Now.ToString("yyyy-MM-dd-HHmmss-fff");
-                var fileName = $"fax-scan-{date}.png";
-
-                string targetPath = Path.Combine(Path.GetTempPath(), fileName);
-                try
-                {
-                    img.Save(targetPath, ImageFormat.Png);
-                    _logger.Info($"Saved scan at {targetPath} for transmission!");
-                    output.Add(targetPath);
-                }
-                catch (Exception exception)
-                {
-                    _logger.Error(exception, "Failed to write image to disk!");
-                    cause = exception;
-                }
-
-                TriggerMonitor(ref programFinishedMonitor);
-            }
-            else
-            {
-                _logger.Error("Failed to create image from transferred data!");
-            }
-
-            _logger.Info($"Received data from source {e.DataSource.Name}");
-        }
-
         private static Image? GetTransferredImage(DataTransferredEventArgs e)
         {
             if (e.NativeData != IntPtr.Zero)
@@ -235,19 +276,11 @@ namespace SipgateVirtualFax.Core
 
             return null;
         }
-
-        static void TriggerMonitor(ref object monitor)
-        {
-            lock (monitor)
-            {
-                Monitor.PulseAll(monitor);
-            }
-        }
     }
 
     public class NoDocumentScannedException : Exception
     {
-        public NoDocumentScannedException(Exception? cause) : base("No document scanned!", cause)
+        public NoDocumentScannedException(string message) : base(message)
         {
         }
     }

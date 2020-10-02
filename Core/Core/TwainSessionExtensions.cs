@@ -2,9 +2,9 @@ using NTwain;
 
 namespace SipgateVirtualFax.Core
 {
-    static class TwainSessionExtensions
+    public static class TwainSessionExtensions
     {
-        public static TwainState GetState(this TwainSession session)
+        public static TwainState GetState(this ITwainSession session)
         {
             return (TwainState) session.State;
         }

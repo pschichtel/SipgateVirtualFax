@@ -65,7 +65,7 @@ namespace SipgateVirtualFax.CLI
                 {
                     logger.Info("Scanning a document...");
                     var scanner = new Scanner();
-                    paths = scanner.ScanWithDefault(options.UseScannerUI);
+                    paths = await scanner.ScanWithDefault(options.UseScannerUI);
                 }
 
                 documentPath = Path.ChangeExtension(paths.First(), "pdf");
