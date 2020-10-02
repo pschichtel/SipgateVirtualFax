@@ -28,20 +28,20 @@
             <Label Grid.Row="0"
                    Grid.Column="1"
                    Grid.ColumnSpan="2"
-                   Content="{Binding Path=Recipient}" />
+                   Content="{Binding Path=Fax.Recipient}" />
             <Label Grid.Row="1"
                    Grid.Column="0"
                    Content="Faxline:" />
             <Label Grid.Row="1"
                    Grid.Column="1"
                    Grid.ColumnSpan="2"
-                   Content="{Binding Path=Faxline.Alias}" />
+                   Content="{Binding Path=Fax.Faxline.Alias}" />
             <Label Grid.Row="2"
                    Grid.Column="0"
                    Content="Status:" />
             <Label Grid.Row="2"
                    Grid.Column="1"
-                   Content="{Binding Path=FaxStatus}" />
+                   Content="{Binding Path=Fax.Status}" />
             <Button Grid.Row="2"
                     Grid.Column="2"
                     Click="Resend_OnClick"

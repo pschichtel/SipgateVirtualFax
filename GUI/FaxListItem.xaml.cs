@@ -20,43 +20,22 @@ namespace SipGateVirtualFaxGui
 
     public class FaxListItemViewModel : BaseViewModel
     {
-        private FaxStatus _faxStatus;
-        private bool _isResendVisible;
+        public TrackedFax Fax { get; }
+        public bool IsResendVisible => Fax.Status.IsComplete() && Fax.Status.CanResend();
 
-        public string Recipient { get; }
-
-        public Faxline Faxline { get; }
-
-        public FaxStatus FaxStatus
+        public FaxListItemViewModel(TrackedFax fax)
         {
-            get => _faxStatus;
-            set
+            Fax = fax;
+            fax.StatusChanged += (sender, status) =>
             {
-                _faxStatus = value;
-                OnPropertyChanged(nameof(FaxStatus));
-                IsResendVisible = _faxStatus == FaxStatus.Failed;
-            }
-        }
-
-        public bool IsResendVisible
-        {
-            get => _isResendVisible;
-            set
-            {
-                _isResendVisible = value;
+                OnPropertyChanged(nameof(Fax));
                 OnPropertyChanged(nameof(IsResendVisible));
-            }
-        }
-
-        public FaxListItemViewModel(string recipient, Faxline faxline)
-        {
-            Recipient = recipient;
-            Faxline = faxline;
+            };
         }
 
         public void Resend()
         {
-            // TODO: Resend logic
+            Fax.Resend();
         }
     }
 }

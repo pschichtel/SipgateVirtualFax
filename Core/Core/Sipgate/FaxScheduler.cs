@@ -192,6 +192,11 @@ namespace SipgateVirtualFax.Core.Sipgate
             return _completed.Task;
         }
 
+        public void Resend()
+        {
+            // TODO implement me
+        }
+
         public override string ToString()
         {
             return $"{nameof(Faxline)}: {Faxline}, {nameof(Recipient)}: {Recipient}, {nameof(DocumentPath)}: {DocumentPath}, {nameof(Id)}: {Id}, {nameof(Status)}: {Status}, {nameof(FailureCause)}: {FailureCause}";

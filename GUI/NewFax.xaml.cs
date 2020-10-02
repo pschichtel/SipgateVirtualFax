@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using CredentialManagement;
 using Microsoft.Win32;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
@@ -52,23 +51,15 @@ namespace SipGateVirtualFaxGui
         private IEnumerable<Faxline>? _faxLines;
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
-        private readonly SipgateFaxClient _faxClient;
-
-        public NewFaxViewModel()
-        {
-            var credential = LookupCredential();
-            _faxClient = new SipgateFaxClient(credential.Username, credential.Password);
-        }
+        private string? _document;
 
         public IEnumerable<Faxline> FaxLines
         {
-            get
+            get => _faxLines;
+            set
             {
-                if (_faxLines == null)
-                {
-                    _faxLines = _faxClient.GetFaxLines().Result;
-                }
-                return _faxLines;
+                _faxLines = value;
+                OnPropertyChanged(nameof(FaxLines));
             }
         }
 
@@ -92,57 +83,17 @@ namespace SipGateVirtualFaxGui
             }
         }
 
-        public void Initialize()
-        {
-            SelectedFaxLine = FaxLines.FirstOrDefault();
-            FaxNumber = string.Empty;
-        }
-        
-        private static Credential LookupCredential()
-        {
-            var credential = new Credential { Target = "sipgate-fax" };
-            if (!credential.Load())
-            {
-                MessageBox.Show("Failed to load sipgate credentials!");
-                throw new Exception("Missing credential!");
-            }
+        public string? DocumentPath { get; private set; }
 
-            return credential;
+        public void Initialize(Faxline[] faxlines)
+        {
+            SelectedFaxLine = faxlines.FirstOrDefault();
+            FaxLines = faxlines;
+            FaxNumber = string.Empty;
+            DocumentPath = null;
         }
 
         public void ScanAndSend()
-        {
-            var scannedPdfPath = Scan();
-            if (scannedPdfPath != null)
-            {
-                Send(scannedPdfPath);
-            }
-        }
-
-        public void ChoosePdfAndSend()
-        {
-            var existingPdfPath = ChoosePdf();
-            if (existingPdfPath != null)
-            {
-                Send(existingPdfPath);
-            }
-        }
-
-        private string? ChoosePdf()
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = "PDF Documents (*.pdf)|*.pdf"
-            };
-            if (openFileDialog.ShowDialog() != true)
-            {
-                return null;
-            }
-
-            return openFileDialog.FileName;
-        }
-
-        private string? Scan()
         {
             try
             {
@@ -151,36 +102,27 @@ namespace SipGateVirtualFaxGui
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
                     ImageToPdfConverter.Convert(paths, pdfPath);
-                    return pdfPath;
+                    DocumentPath = pdfPath;
                 }
             }
             catch (NoDocumentScannedException)
             {
                 MessageBox.Show("No document scanned!");
             }
-
-            return null;
         }
 
-        private void Send(string pdfPath)
+        public void ChoosePdfAndSend()
         {
-            try
+            var openFileDialog = new OpenFileDialog
             {
-                var faxLineId = _selectedFaxLine?.Id;
-                if (faxLineId == null)
-                {
-                    MessageBox.Show("No fax line selected!");
-                    return;
-                }
+                Filter = "PDF Documents (*.pdf)|*.pdf"
+            };
+            if (openFileDialog.ShowDialog() != true)
+            {
+                return;
+            }
 
-                _faxClient.SendFax(faxLineId, _faxNumber, pdfPath);
-                MessageBox.Show("Successfully send the fax!");
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Failed to send fax!");
-                MessageBox.Show(e.Message);
-            }
+            DocumentPath = openFileDialog.FileName;
         }
     }
 }

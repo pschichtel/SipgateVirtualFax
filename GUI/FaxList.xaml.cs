@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using SipgateVirtualFax.Core.Sipgate;
@@ -8,14 +9,17 @@ namespace SipGateVirtualFaxGui
     public partial class FaxList : UserControl
     {
         private readonly NewFax _newFax = new NewFax();
+        
         public FaxList()
         {
             InitializeComponent();
         }
 
-        private void New_OnClick(object sender, RoutedEventArgs e)
+        private async void New_OnClick(object sender, RoutedEventArgs e)
         {
-            _newFax.ViewModel.Initialize();
+            var faxlines = await FaxStuff.Instance.FaxClient.GetFaxLines();
+
+            _newFax.ViewModel.Initialize(faxlines);
             var window = new Window()
             {
                 Title = "New fax",
@@ -25,27 +29,28 @@ namespace SipGateVirtualFaxGui
             };
             window.ShowDialog();
 
-            var newFaxViewModel = _newFax.ViewModel;
-            if (newFaxViewModel.SelectedFaxLine == null)
+            var newFaxModel = _newFax.ViewModel;
+            if (newFaxModel.SelectedFaxLine == null || newFaxModel.DocumentPath == null)
             {
                 return;
             }
 
-            var viewmodel = (FaxListViewModel) DataContext;
-            viewmodel.Items.Add(new FaxListItemViewModel(newFaxViewModel.FaxNumber, newFaxViewModel.SelectedFaxLine));
+            var fax = FaxStuff.Instance.FaxScheduler
+                .ScheduleFax(newFaxModel.SelectedFaxLine, newFaxModel.FaxNumber, newFaxModel.DocumentPath);
+
+            var faxListItemViewModel = new FaxListItemViewModel(fax);
+
+            var viewModel = (FaxListViewModel) DataContext;
+            viewModel.Items.Add(faxListItemViewModel);
         }
     }
 
     public class FaxListViewModel : BaseViewModel
     {
-        public ObservableCollection<FaxListItemViewModel> Items { get; } = new ObservableCollection<FaxListItemViewModel>()
-        {
-            new FaxListItemViewModel("123465", new Faxline("123", "Dort", "456", true)),
-            new FaxListItemViewModel("456798", new Faxline("456", "Hier steht ein ganz langer Text", "789", true)),
-            new FaxListItemViewModel("789132", new Faxline("789", "Irgendwo", "123", true))
-            {
-                FaxStatus = FaxStatus.Failed
-            }
-        };
+        // public SipgateFaxClient FaxClient { get; set; }
+        // public FaxScheduler FaxScheduler { get; set; }
+        
+        public ObservableCollection<FaxListItemViewModel> Items { get; }
+            = new ObservableCollection<FaxListItemViewModel>();
     }
 }

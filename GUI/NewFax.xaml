@@ -32,7 +32,7 @@
         <ComboBox Grid.Row="0"
                   Grid.Column="1"
                   SelectedValue="{Binding Path=SelectedFaxLine}"
-                  ItemsSource="{Binding Path=FaxLines, Mode=OneTime, IsAsync=True}"
+                  ItemsSource="{Binding Path=FaxLines}"
                   DisplayMemberPath="Alias"
                   SelectedIndex="0" />
         <Label Grid.Row="1"

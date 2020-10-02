@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
+using CredentialManagement;
+using SipgateVirtualFax.Core.Sipgate;
 
 namespace SipGateVirtualFaxGui
 {
@@ -10,6 +13,11 @@ namespace SipGateVirtualFaxGui
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            FaxStuff.Instance.FaxScheduler.Dispose();
         }
     }
 }
