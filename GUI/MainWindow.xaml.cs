@@ -13,6 +13,7 @@ namespace SipGateVirtualFaxGui
         public MainWindow()
         {
             InitializeComponent();
+            Title = "SipgateVirtualFax";
         }
 
         protected override void OnClosed(EventArgs e)

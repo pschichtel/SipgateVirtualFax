@@ -16,6 +16,12 @@ namespace SipGateVirtualFaxGui
             var vm = (FaxListItemViewModel) DataContext;
             vm.Resend();
         }
+        
+        private void OpenPdf_OnClick(object sender, RoutedEventArgs e)
+        {
+            var vm = (FaxListItemViewModel) DataContext;
+            System.Diagnostics.Process.Start(vm.Fax.DocumentPath);
+        }
     }
 
     public class FaxListItemViewModel : BaseViewModel

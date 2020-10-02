@@ -52,7 +52,7 @@ namespace SipGateVirtualFaxGui
         private Faxline? _selectedFaxLine;
         private string _faxNumber = "";
 
-        public IEnumerable<Faxline> FaxLines
+        public IEnumerable<Faxline>? FaxLines
         {
             get => _faxLines;
             set
