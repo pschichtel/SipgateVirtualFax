@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using NLog;
 using NTwain;
 using NTwain.Data;
@@ -41,12 +42,13 @@ namespace SipgateVirtualFax.Core
         public IList<string> Scan(Func<IDataSource, bool> sourceFilter, bool showScannerUi)
         {
 
-            return DoScan(null, showScannerUi);
+            return DoScan(sourceFilter, showScannerUi);
         }
 
         private IList<string> DoScan(Func<IDataSource, bool>? sourceFilter, bool showScannerUi)
         {
             var session = CreateSession();
+            IDataSource? source = null;
             try
             {
                 var programFinishedMonitor = new object();
@@ -87,7 +89,6 @@ namespace SipgateVirtualFax.Core
                     throw new Exception("Failed to open TWAIN session!");
                 }
 
-                IDataSource? source;
                 if (sourceFilter != null)
                 {
                     source = session.GetSources()
@@ -135,11 +136,18 @@ namespace SipgateVirtualFax.Core
             }
             finally
             {
-                if (session.IsDsmOpen)
+                _logger.Info("Closing...");
+                if (source != null && source.IsOpen)
                 {
-                    _logger.Info("Closing...");
-                    session.Close();
+                    source.Close();
                 }
+
+                if (session.IsSourceEnabled && session.CurrentSource.IsOpen)
+                {
+                    session.CurrentSource.Close();
+                }
+                
+                session.Close();
             }
         }
 
