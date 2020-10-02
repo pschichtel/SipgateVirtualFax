@@ -8,13 +8,14 @@ What works?
 - Converting the resting image into a PDF (using iTextSharp)
 - Pulling available group faxlines from sipgate
 - Sending the PDF as a fax
+- Fax status polling
+- Fax existing PDF without scanning
+- Offering resend upon send failure
+- Initial progress reporting
 
 What's still missing?
 
 - multi page scanning using ADF
 - multi page scanning using manual swap with UI guidance
 - Progress indication in the UI
-- Fax status polling
-- Offering resend upon send failure
-- Fax existing PDF without scanning
 - Contact book integration
