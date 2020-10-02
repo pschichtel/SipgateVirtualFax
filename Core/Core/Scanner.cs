@@ -63,21 +63,26 @@ namespace SipgateVirtualFax.Core
             }
             
             _logger.Info($"Enabled source {source.Name} successfully!");
-            var scans = await EnableSourceAndCollectScans(session, source, showScannerUi);
-
-            _logger.Info("Closing source...");
-            if (source.Close() != ReturnCode.Success)
+            try
             {
-                session.Close();
-                throw new Exception("Failed to close source!");
+                return await EnableSourceAndCollectScans(session, source, showScannerUi);
+            }
+            finally
+            {
+                _logger.Info("Closing source...");
+                if (source.Close() != ReturnCode.Success)
+                {
+                    session.Close();
+                    throw new Exception("Failed to close source!");
+                }
+
+                _logger.Info("Closing session...");
+                if (session.Close() != ReturnCode.Success)
+                {
+                    throw new Exception("Failed to close session!");
+                }
             }
 
-            _logger.Info("Closing session...");
-            if (session.Close() != ReturnCode.Success)
-            {
-                throw new Exception("Failed to close session!");
-            }
-            return scans;
         }
 
         private ITwainSession CreateSession(MessageLoopHook? loopHook = null)
@@ -228,6 +233,15 @@ namespace SipgateVirtualFax.Core
                 Cleanup();
                 completionSource.SetException(e);
             }
+            
+            // if (ShouldEnableFeeder(source))
+            // {
+            //     _logger.Info("Scanner capabilities suggest, that we should use the ADF, trying to enable...");
+            //     if (EnableFeeder(source))
+            //     {
+            //         _logger.Warn("Enabling the ADF failed.");
+            //     }
+            // }
 
             session.TransferReady += TransferReady;
             session.DataTransferred += ProcessData;
@@ -242,10 +256,24 @@ namespace SipgateVirtualFax.Core
             return completionSource.Task;
         }
 
-        private void SetCapability<T>(IDataSource source, Func<ICapabilities, ICapWrapper<T>> cap, T value)
+        private bool ShouldEnableFeeder(IDataSource source)
         {
-            cap(source.Capabilities).SetValue(value);
             PrintCapabilities(source);
+            var canEnableFeeder= source.Capabilities.CapFeederEnabled.CanSet;
+            var canGetFeederLoaded = source.Capabilities.CapFeederLoaded.CanGetCurrent;
+            var canGetPaperDetectSupport = source.Capabilities.CapPaperDetectable.CanGetCurrent;
+
+            if (canEnableFeeder && canGetFeederLoaded && canGetPaperDetectSupport)
+            {
+                return source.Capabilities.CapFeederLoaded.GetCurrent() == BoolType.True;
+            }
+
+            return false;
+        }
+
+        private bool EnableFeeder(IDataSource source)
+        {
+            return source.Capabilities.CapFeederEnabled.SetValue(BoolType.True) == ReturnCode.Success;
         }
 
         private void PrintCapabilities(IDataSource source)
