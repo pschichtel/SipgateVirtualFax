@@ -17,6 +17,8 @@ namespace SipgateVirtualFax.Core
             foreach (var path in imagePath)
             {
                 var image = Image.GetInstance(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                image.SetAbsolutePosition(0, 0);
+                image.ScaleToFit(document.PageSize.Width, document.PageSize.Height);
                 document.Add(image);
                 document.NewPage();
             }
