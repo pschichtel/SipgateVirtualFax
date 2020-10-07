@@ -66,7 +66,8 @@ namespace SipgateVirtualFax.CLI
                     logger.Info("Scanning a document...");
                     var scanner = new Scanner()
                     {
-                        ShowUi = options.UseScannerUI
+                        ShowUi = options.UseScannerUI,
+                        ScanBasePath = "."
                     };
                     paths = await scanner.ScanWithDefault();
                 }

@@ -27,6 +27,7 @@ namespace SipgateVirtualFax.Core
         private readonly TWIdentity _appId;
         public bool ShowUi { get; set; } = true;
         public IntPtr ParentWindow { get; set; } = IntPtr.Zero;
+        public string ScanBasePath { get; set; } = Path.GetTempPath();
 
         public Scanner()
         {
@@ -155,7 +156,7 @@ namespace SipgateVirtualFax.Core
                 var date = DateTime.Now.ToString("yyyy-MM-dd-HHmmss-fff");
                 var fileName = $"fax-scan-{date}.png";
 
-                string targetPath = Path.Combine(Path.GetTempPath(), fileName);
+                string targetPath = Path.Combine(ScanBasePath, fileName);
                 try
                 {
                     img.Save(targetPath, ImageFormat.Png);

@@ -68,7 +68,8 @@ namespace SipGateVirtualFaxGui
             _scanner = new Scanner()
             {
                 ShowUi = true,
-                ParentWindow = parentWindowHandle
+                ParentWindow = parentWindowHandle,
+                ScanBasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
         }
 
