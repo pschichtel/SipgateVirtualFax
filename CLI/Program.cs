@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CommandLine;
-using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 
@@ -16,7 +15,7 @@ namespace SipgateVirtualFax.CLI
             HelpText = "The recipient number, set if you want to send the document")]
         public string? Recipient { get; set; }
 
-        [Option('i', "image", Required = false,
+        [Option('i', "image", Required = false, Separator = ';',
             HelpText = "A path to an image. Will be ignored if a document is provided!")]
         public IList<string> Images { get; set; }
 
@@ -52,7 +51,7 @@ namespace SipgateVirtualFax.CLI
 
         private static async Task Run(Options options)
         {
-            var logger = LogManager.GetCurrentClassLogger();
+            var logger = Logging.GetLogger("cli-main");
             string documentPath;
             if (options.DocumentPath != null)
             {
@@ -73,7 +72,11 @@ namespace SipgateVirtualFax.CLI
                 }
 
                 documentPath = Path.ChangeExtension(paths.First(), "pdf");
-                logger.Info("Converting the document into a PDF...");
+                logger.Info("Converting the scans into a PDF...");
+                foreach (var path in paths)
+                {
+                    logger.Info($"Scan: {path}");
+                }
                 ImageToPdfConverter.Convert(paths, documentPath);
             }
 
