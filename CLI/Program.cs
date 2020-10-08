@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,6 +46,8 @@ namespace SipgateVirtualFax.CLI
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine(CultureInfo.InstalledUICulture);
+            Console.WriteLine(CultureInfo.CurrentCulture);
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsedAsync(Run);
         }

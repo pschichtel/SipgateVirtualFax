@@ -38,7 +38,7 @@ namespace SipGateVirtualFaxGui
             catch (Exception e)
             {
                 _logger.Error(e, "Failed to load faxlines from sipgate!");
-                MessageBox.Show("Failed to load the fax lines!");
+                MessageBox.Show(Properties.Resources.Err_FailedToLoadFaxlines);
             }
 
             var newFaxModel = _newFax.ViewModel;
