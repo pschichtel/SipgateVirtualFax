@@ -10,8 +10,7 @@ namespace SipGateVirtualFaxGui
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("de-DE");
-            
+            //System.Threading.Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("de-DE");
         }
     }
 }

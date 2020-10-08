@@ -22,7 +22,7 @@ namespace SipGateVirtualFaxGui.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources_de {
+    public class Resources_de {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace SipGateVirtualFaxGui.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SipGateVirtualFaxGui.Properties.Resources.de", typeof(Resources_de).Assembly);
@@ -51,7 +51,7 @@ namespace SipGateVirtualFaxGui.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -63,7 +63,7 @@ namespace SipGateVirtualFaxGui.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Sipgate Virtuelles Fax.
         /// </summary>
-        internal static string AppName {
+        public static string AppName {
             get {
                 return ResourceManager.GetString("AppName", resourceCulture);
             }
@@ -72,7 +72,7 @@ namespace SipGateVirtualFaxGui.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Die Faxleitungen konnten nicht von Sipgate geladen werden!.
         /// </summary>
-        internal static string Err_FailedToLoadFaxlines {
+        public static string Err_FailedToLoadFaxlines {
             get {
                 return ResourceManager.GetString("Err_FailedToLoadFaxlines", resourceCulture);
             }
@@ -81,7 +81,7 @@ namespace SipGateVirtualFaxGui.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Neues Fax.
         /// </summary>
-        internal static string NewFax {
+        public static string NewFax {
             get {
                 return ResourceManager.GetString("NewFax", resourceCulture);
             }
