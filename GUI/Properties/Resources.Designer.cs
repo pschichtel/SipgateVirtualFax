@@ -70,7 +70,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MM-dd/yyyy HH:mm:ss.
+        ///   Looks up a localized string similar to MM/dd/yyyy HH:mm:ss.
         /// </summary>
         public static string DateFormat {
             get {

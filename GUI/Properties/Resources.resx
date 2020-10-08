@@ -59,7 +59,7 @@
         <value>State:</value>
     </data>
     <data name="DateFormat" xml:space="preserve">
-        <value>MM-dd/yyyy HH:mm:ss</value>
+        <value>MM/dd/yyyy HH:mm:ss</value>
     </data>
     <data name="Label_SelectExistingDocument" xml:space="preserve">
         <value>Select an existing document</value>
