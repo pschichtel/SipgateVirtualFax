@@ -1,11 +1,16 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
+using NLog;
+using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 
 namespace SipGateVirtualFaxGui
 {
     public partial class FaxListItem : UserControl
     {
+        private readonly Logger _logger = Logging.GetLogger("gui-faxlist");
+        
         public FaxListItem()
         {
             InitializeComponent();
@@ -17,10 +22,18 @@ namespace SipGateVirtualFaxGui
             vm.Resend();
         }
         
-        private void OpenPdf_OnClick(object sender, RoutedEventArgs e)
+        private void OpenPdf_OnClick(object sender, RoutedEventArgs ev)
         {
             var vm = (FaxListItemViewModel) DataContext;
-            System.Diagnostics.Process.Start(vm.Fax.DocumentPath);
+            try
+            {
+                System.Diagnostics.Process.Start(vm.Fax.DocumentPath);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e, "Failed to open a fax document!");
+                MessageBox.Show(Properties.Resources.Err_FailedToOpenDocument);
+            }
         }
     }
 

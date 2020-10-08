@@ -67,4 +67,7 @@
     <data name="Label_ScanDocument" xml:space="preserve">
         <value>Ein Dokument scannen</value>
     </data>
+    <data name="Err_FailedToOpenDocument" xml:space="preserve">
+        <value>Das Dokument konnte nicht geöffnet werden!</value>
+    </data>
 </root>

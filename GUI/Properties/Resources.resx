@@ -59,12 +59,15 @@
         <value>State:</value>
     </data>
     <data name="DateFormat" xml:space="preserve">
-        <value>MM/dd/yyyy HH:mm:ss</value>
+        <value>MM-dd/yyyy HH:mm:ss</value>
     </data>
     <data name="Label_SelectExistingDocument" xml:space="preserve">
         <value>Select an existing document</value>
     </data>
     <data name="Label_ScanDocument" xml:space="preserve">
         <value>Scan a document</value>
+    </data>
+    <data name="Err_FailedToOpenDocument" xml:space="preserve">
+        <value>Failed to open the docuement!</value>
     </data>
 </root>

@@ -70,7 +70,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MM/dd/yyyy HH:mm:ss.
+        ///   Looks up a localized string similar to MM-dd/yyyy HH:mm:ss.
         /// </summary>
         public static string DateFormat {
             get {
@@ -93,6 +93,15 @@ namespace SipGateVirtualFaxGui.Properties {
         public static string Err_FailedToLoadFaxlines {
             get {
                 return ResourceManager.GetString("Err_FailedToLoadFaxlines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to open the docuement!.
+        /// </summary>
+        public static string Err_FailedToOpenDocument {
+            get {
+                return ResourceManager.GetString("Err_FailedToOpenDocument", resourceCulture);
             }
         }
         

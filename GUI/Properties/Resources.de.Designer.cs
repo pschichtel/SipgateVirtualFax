@@ -97,6 +97,15 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Das Dokument konnte nicht geöffnet werden!.
+        /// </summary>
+        public static string Err_FailedToOpenDocument {
+            get {
+                return ResourceManager.GetString("Err_FailedToOpenDocument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Das Senden des Fax ist fehlgeschlagen!.
         /// </summary>
         public static string Err_FailedToSendFax {
