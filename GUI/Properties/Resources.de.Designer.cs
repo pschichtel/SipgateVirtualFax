@@ -70,6 +70,15 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to dd. MM. yyyy HH:mm:ss.
+        /// </summary>
+        public static string DateFormat {
+            get {
+                return ResourceManager.GetString("DateFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Die Sipgate Zugangsdaten namens &quot;{0}&quot; konnten nicht gefunden werden!.
         /// </summary>
         public static string Err_CredentialsNotFound {
@@ -106,7 +115,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Faxleitung:.
+        ///   Looks up a localized string similar to Faxleitung.
         /// </summary>
         public static string Label_Faxline {
             get {
@@ -124,7 +133,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Empfänger:.
+        ///   Looks up a localized string similar to Empfänger.
         /// </summary>
         public static string Label_Recipient {
             get {
@@ -138,6 +147,24 @@ namespace SipGateVirtualFaxGui.Properties {
         public static string Label_Resend {
             get {
                 return ResourceManager.GetString("Label_Resend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ein Dokument scannen.
+        /// </summary>
+        public static string Label_ScanDocument {
+            get {
+                return ResourceManager.GetString("Label_ScanDocument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vorhandenes Dokument auswählen.
+        /// </summary>
+        public static string Label_SelectExistingDocument {
+            get {
+                return ResourceManager.GetString("Label_SelectExistingDocument", resourceCulture);
             }
         }
         

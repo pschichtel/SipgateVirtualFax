@@ -44,10 +44,10 @@
         <value>Es wurde kein Dokument gescannt!</value>
     </data>
     <data name="Label_Recipient" xml:space="preserve">
-        <value>Empfänger:</value>
+        <value>Empfänger</value>
     </data>
     <data name="Label_Faxline" xml:space="preserve">
-        <value>Faxleitung:</value>
+        <value>Faxleitung</value>
     </data>
     <data name="Label_OpenPdf" xml:space="preserve">
         <value>PDF öffnen</value>
@@ -57,5 +57,14 @@
     </data>
     <data name="Label_Status" xml:space="preserve">
         <value>Status:</value>
+    </data>
+    <data name="DateFormat" xml:space="preserve">
+        <value>dd. MM. yyyy HH:mm:ss</value>
+    </data>
+    <data name="Label_SelectExistingDocument" xml:space="preserve">
+        <value>Vorhandenes Dokument auswählen</value>
+    </data>
+    <data name="Label_ScanDocument" xml:space="preserve">
+        <value>Ein Dokument scannen</value>
     </data>
 </root>

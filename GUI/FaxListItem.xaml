@@ -72,19 +72,19 @@
                        Content="Scheduled" />
                 <Label Grid.Row="1"
                        Grid.Column="0"
-                       Content="{Binding Path=Fax.ScheduleTime, StringFormat=s}" />
+                       Content="{Binding Path=Fax.ScheduleTime, StringFormat={x:Static p:Resources.DateFormat}}" />
                 <Label Grid.Row="0"
                        Grid.Column="1"
                        Content="Send" />
                 <Label Grid.Row="1"
                        Grid.Column="1"
-                       Content="{Binding Path=Fax.SendTime, StringFormat=s}" />
+                       Content="{Binding Path=Fax.SendTime, StringFormat={x:Static p:Resources.DateFormat}}" />
                 <Label Grid.Row="0"
                        Grid.Column="2"
                        Content="Completed" />
                 <Label Grid.Row="1"
                        Grid.Column="2"
-                       Content="{Binding Path=Fax.CompleteTime, StringFormat=s}" />
+                       Content="{Binding Path=Fax.CompleteTime, StringFormat={x:Static p:Resources.DateFormat}}" />
             </Grid>
 
 
