@@ -42,6 +42,22 @@ namespace SipGateVirtualFaxGui
         public TrackedFax Fax { get; private set; }
         public bool IsResendVisible => Fax.Status.IsComplete() && Fax.Status.CanResend();
 
+        public string Status
+        {
+            get
+            {
+                return Fax.Status switch
+                {
+                    FaxStatus.Pending => Properties.Resources.Status_Pending,
+                    FaxStatus.Sending => Properties.Resources.Status_Sending,
+                    FaxStatus.SuccessfullySent => Properties.Resources.Status_SuccessfullySent,
+                    FaxStatus.Failed => Properties.Resources.Status_Failed,
+                    FaxStatus.Unknown => Properties.Resources.Status_Unknown,
+                    _ => "???"
+                };
+            }
+        }
+
         public FaxListItemViewModel(TrackedFax fax)
         {
             Fax = ConfigureFax(fax);
@@ -65,6 +81,7 @@ namespace SipGateVirtualFaxGui
         private void UpdateProperties()
         {
             OnPropertyChanged(nameof(Fax));
+            OnPropertyChanged(nameof(Status));
             OnPropertyChanged(nameof(IsResendVisible));
         }
     }

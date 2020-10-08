@@ -212,5 +212,50 @@ namespace SipGateVirtualFaxGui.Properties {
                 return ResourceManager.GetString("PdfDocuments", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Senden fehlgeschlagen.
+        /// </summary>
+        public static string Status_Failed {
+            get {
+                return ResourceManager.GetString("Status_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wartend.
+        /// </summary>
+        public static string Status_Pending {
+            get {
+                return ResourceManager.GetString("Status_Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sende.
+        /// </summary>
+        public static string Status_Sending {
+            get {
+                return ResourceManager.GetString("Status_Sending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Erfolgreich gesendet.
+        /// </summary>
+        public static string Status_SuccessfullySent {
+            get {
+                return ResourceManager.GetString("Status_SuccessfullySent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unbekannter Zustand.
+        /// </summary>
+        public static string Status_Unknown {
+            get {
+                return ResourceManager.GetString("Status_Unknown", resourceCulture);
+            }
+        }
     }
 }

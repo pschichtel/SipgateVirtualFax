@@ -46,7 +46,7 @@
             Content="{x:Static p:Resources.Label_Status}" />
      <Label Grid.Row="2"
             Grid.Column="1"
-            Content="{Binding Path=Fax.Status}" />
+            Content="{Binding Path=Status}" />
      <Button Grid.Row="2"
              Grid.Column="2"
              Click="Resend_OnClick"

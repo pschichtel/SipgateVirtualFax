@@ -178,7 +178,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to State:.
+        ///   Looks up a localized string similar to Status:.
         /// </summary>
         public static string Label_Status {
             get {
@@ -210,6 +210,51 @@ namespace SipGateVirtualFaxGui.Properties {
         public static string PdfDocuments {
             get {
                 return ResourceManager.GetString("PdfDocuments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sending failed.
+        /// </summary>
+        public static string Status_Failed {
+            get {
+                return ResourceManager.GetString("Status_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending.
+        /// </summary>
+        public static string Status_Pending {
+            get {
+                return ResourceManager.GetString("Status_Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sending.
+        /// </summary>
+        public static string Status_Sending {
+            get {
+                return ResourceManager.GetString("Status_Sending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully sent.
+        /// </summary>
+        public static string Status_SuccessfullySent {
+            get {
+                return ResourceManager.GetString("Status_SuccessfullySent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown State.
+        /// </summary>
+        public static string Status_Unknown {
+            get {
+                return ResourceManager.GetString("Status_Unknown", resourceCulture);
             }
         }
     }

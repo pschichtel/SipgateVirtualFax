@@ -56,7 +56,7 @@
         <value>Resend</value>
     </data>
     <data name="Label_Status" xml:space="preserve">
-        <value>State:</value>
+        <value>Status:</value>
     </data>
     <data name="DateFormat" xml:space="preserve">
         <value>MM/dd/yyyy HH:mm:ss</value>
@@ -69,5 +69,20 @@
     </data>
     <data name="Err_FailedToOpenDocument" xml:space="preserve">
         <value>Failed to open the docuement!</value>
+    </data>
+    <data name="Status_Pending" xml:space="preserve">
+        <value>Pending</value>
+    </data>
+    <data name="Status_Sending" xml:space="preserve">
+        <value>Sending</value>
+    </data>
+    <data name="Status_SuccessfullySent" xml:space="preserve">
+        <value>Successfully sent</value>
+    </data>
+    <data name="Status_Failed" xml:space="preserve">
+        <value>Sending failed</value>
+    </data>
+    <data name="Status_Unknown" xml:space="preserve">
+        <value>Unknown State</value>
     </data>
 </root>
