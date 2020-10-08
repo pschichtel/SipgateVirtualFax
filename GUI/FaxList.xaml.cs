@@ -26,7 +26,7 @@ namespace SipGateVirtualFaxGui
                 _newFax.ViewModel.Initialize(faxlines);
                 var window = new Window
                 {
-                    Title = "New fax",
+                    Title = Properties.Resources.NewFax,
                     Content = _newFax,
                     SizeToContent = SizeToContent.Height,
                     Width = 500,
@@ -61,7 +61,7 @@ namespace SipGateVirtualFaxGui
             {
                 _logger.Error(e,
                     $"Failed to schedule the fax: faxline={newFaxModel.SelectedFaxLine}; recipient={newFaxModel.FaxNumber}; document={newFaxModel.DocumentPath}");
-                MessageBox.Show("Failed to send the fax!");
+                MessageBox.Show(Properties.Resources.Err_FailedToSendFax);
             }
         }
     }

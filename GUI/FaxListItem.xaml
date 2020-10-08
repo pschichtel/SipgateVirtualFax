@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:SipGateVirtualFaxGui"
+             xmlns:p="clr-namespace:SipGateVirtualFaxGui.Properties"
              mc:Ignorable="d"
              d:DesignHeight="30"
              d:DesignWidth="100">
@@ -25,14 +26,14 @@
 
             <Label Grid.Row="0"
                    Grid.Column="0"
-                   Content="Recipient:" />
+                   Content="{x:Static p:Resources.Label_Recipient}" />
             <Label Grid.Row="0"
                    Grid.Column="1"
                    Grid.ColumnSpan="2"
                    Content="{Binding Path=Fax.Recipient}" />
             <Label Grid.Row="1"
                    Grid.Column="0"
-                   Content="Faxline:" />
+                   Content="{x:Static p:Resources.Label_Recipient}" />
             <Label Grid.Row="1"
                    Grid.Column="1"
                    Grid.ColumnSpan="2"
@@ -40,17 +41,17 @@
             <Button Grid.Row="1"
                     Grid.Column="2"
                     Click="OpenPdf_OnClick"
-                    Content="Open PDF" />
+                    Content="{x:Static p:Resources.Label_OpenPdf}" />
             <Label Grid.Row="2"
                    Grid.Column="0"
-                   Content="Status:" />
+                   Content="{x:Static p:Resources.Label_Status}" />
             <Label Grid.Row="2"
                    Grid.Column="1"
                    Content="{Binding Path=Fax.Status}" />
             <Button Grid.Row="2"
                     Grid.Column="2"
                     Click="Resend_OnClick"
-                    Content="Resend"
+                    Content="{x:Static p:Resources.Label_Resend}"
                     Visibility="{Binding Path=IsResendVisible, Converter={local:BoolToVisibilityConverter}}" />
             <Grid Grid.Row="3"
                   Grid.Column="0"

@@ -126,13 +126,13 @@ namespace SipGateVirtualFaxGui
                 }
                 else
                 {
-                    MessageBox.Show("No document scanned!");
+                    MessageBox.Show(Properties.Resources.NoDocumentScanned);
                 }
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Scanning failed");
-                MessageBox.Show("Scanning failed!");
+                MessageBox.Show(Properties.Resources.Err_ScanningFailed);
             }
         }
 
@@ -140,7 +140,7 @@ namespace SipGateVirtualFaxGui
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "PDF Documents (*.pdf)|*.pdf"
+                Filter = $"{Properties.Resources.PdfDocuments} (*.pdf)|*.pdf"
             };
             if (openFileDialog.ShowDialog() != true)
             {

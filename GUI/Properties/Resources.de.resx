@@ -28,4 +28,34 @@
     <data name="NewFax" xml:space="preserve">
         <value>Neues Fax</value>
     </data>
+    <data name="Err_FailedToSendFax" xml:space="preserve">
+        <value>Das Senden des Fax ist fehlgeschlagen!</value>
+    </data>
+    <data name="Err_CredentialsNotFound" xml:space="preserve">
+        <value>Die Sipgate Zugangsdaten namens "{0}" konnten nicht gefunden werden!</value>
+    </data>
+    <data name="Err_ScanningFailed" xml:space="preserve">
+        <value>Das Scannen ist fehlgeschlagen!</value>
+    </data>
+    <data name="PdfDocuments" xml:space="preserve">
+        <value>PDF Dokumente</value>
+    </data>
+    <data name="NoDocumentScanned" xml:space="preserve">
+        <value>Es wurde kein Dokument gescannt!</value>
+    </data>
+    <data name="Label_Recipient" xml:space="preserve">
+        <value>Empfänger:</value>
+    </data>
+    <data name="Label_Faxline" xml:space="preserve">
+        <value>Faxleitung:</value>
+    </data>
+    <data name="Label_OpenPdf" xml:space="preserve">
+        <value>PDF öffnen</value>
+    </data>
+    <data name="Label_Resend" xml:space="preserve">
+        <value>Erneut senden</value>
+    </data>
+    <data name="Label_Status" xml:space="preserve">
+        <value>Status:</value>
+    </data>
 </root>

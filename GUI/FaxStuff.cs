@@ -7,6 +7,7 @@ namespace SipGateVirtualFaxGui
 {
     public class FaxStuff
     {
+        public const string CredentialName = "sipgate-fax"; 
         public static readonly FaxStuff Instance = new FaxStuff();
         
         public SipgateFaxClient FaxClient { get; private set; }
@@ -21,10 +22,10 @@ namespace SipGateVirtualFaxGui
         
         private static Credential LookupCredential()
         {
-            var credential = new Credential { Target = "sipgate-fax" };
+            var credential = new Credential { Target = CredentialName };
             if (!credential.Load())
             {
-                MessageBox.Show("Failed to load sipgate credentials!");
+                MessageBox.Show(string.Format(Properties.Resources.Err_CredentialsNotFound, CredentialName));
                 throw new Exception("Missing credential!");
             }
 

@@ -70,6 +70,15 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to find the Sipgate credentials named &quot;{0}&quot;!.
+        /// </summary>
+        public static string Err_CredentialsNotFound {
+            get {
+                return ResourceManager.GetString("Err_CredentialsNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to load Faxlines from Sipgate!.
         /// </summary>
         public static string Err_FailedToLoadFaxlines {
@@ -79,11 +88,92 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to send fax!.
+        /// </summary>
+        public static string Err_FailedToSendFax {
+            get {
+                return ResourceManager.GetString("Err_FailedToSendFax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The scanning failed!.
+        /// </summary>
+        public static string Err_ScanningFailed {
+            get {
+                return ResourceManager.GetString("Err_ScanningFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Faxline:.
+        /// </summary>
+        public static string Label_Faxline {
+            get {
+                return ResourceManager.GetString("Label_Faxline", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open PDF.
+        /// </summary>
+        public static string Label_OpenPdf {
+            get {
+                return ResourceManager.GetString("Label_OpenPdf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recipient:.
+        /// </summary>
+        public static string Label_Recipient {
+            get {
+                return ResourceManager.GetString("Label_Recipient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resend.
+        /// </summary>
+        public static string Label_Resend {
+            get {
+                return ResourceManager.GetString("Label_Resend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to State:.
+        /// </summary>
+        public static string Label_Status {
+            get {
+                return ResourceManager.GetString("Label_Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New Fax.
         /// </summary>
         public static string NewFax {
             get {
                 return ResourceManager.GetString("NewFax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No document has been scanned!.
+        /// </summary>
+        public static string NoDocumentScanned {
+            get {
+                return ResourceManager.GetString("NoDocumentScanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PDF Documents.
+        /// </summary>
+        public static string PdfDocuments {
+            get {
+                return ResourceManager.GetString("PdfDocuments", resourceCulture);
             }
         }
     }
