@@ -19,8 +19,13 @@
         </Grid.RowDefinitions>
 
         <ListView Grid.Row="0"
-                  ItemsSource="{Binding Path=Items, UpdateSourceTrigger=PropertyChanged}"
-                  HorizontalContentAlignment="Stretch">
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                  ItemsSource="{Binding Path=Items, UpdateSourceTrigger=PropertyChanged}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <local:FaxListItem />

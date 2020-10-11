@@ -56,7 +56,7 @@
         <value>Resend</value>
     </data>
     <data name="Label_Status" xml:space="preserve">
-        <value>Status:</value>
+        <value>Status</value>
     </data>
     <data name="DateFormat" xml:space="preserve">
         <value>MM/dd/yyyy HH:mm:ss</value>

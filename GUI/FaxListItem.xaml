@@ -8,67 +8,78 @@
              mc:Ignorable="d"
              d:DesignHeight="30"
              d:DesignWidth="100">
-
-    <Grid Margin="1, 1, 1, 1">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
-        <Grid Grid.Column="0">
+    
+    <StackPanel>
+        <Grid Margin="1, 1, 1, 1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
 
-            <Label Grid.Row="0"
-                   Grid.Column="0"
-                   FontWeight="Bold"
-                   Content="{x:Static p:Resources.Label_Recipient}" />
-            <Label Grid.Row="0"
-                   Grid.Column="1"
-                   Content="{Binding Path=Fax.Recipient}" />
-            <Label Grid.Row="1"
-                   Grid.Column="0"
-                   FontWeight="Bold"
-                   Content="{x:Static p:Resources.Label_Faxline}" />
-            <Label Grid.Row="1"
-                   Grid.Column="1"
-                   Content="{Binding Path=Fax.Faxline.Alias}" />
-            <Label Grid.Row="2"
-                   Grid.Column="0"
-                   FontWeight="Bold"
-                   Content="{x:Static p:Resources.Label_Status}" />
-            <Label Grid.Row="2"
-                   Grid.Column="1"
-                   Content="{Binding Path=Status}" />
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0"
+                       Grid.Column="0"
+                       FontWeight="Bold"
+                       Content="{x:Static p:Resources.Label_Recipient}" />
+                <Label Grid.Row="0"
+                       Grid.Column="1">
+                    <TextBlock Text="{Binding Path=Fax.Recipient}" />
+                </Label>
+                <Label Grid.Row="1"
+                       Grid.Column="0"
+                       FontWeight="Bold"
+                       Content="{x:Static p:Resources.Label_Faxline}" />
+                <Label Grid.Row="1"
+                       Grid.Column="1">
+                    <TextBlock Text="{Binding Path=Fax.Faxline.Alias}" />
+                </Label>
+                <Label Grid.Row="2"
+                       Grid.Column="0"
+                       FontWeight="Bold"
+                       Content="{x:Static p:Resources.Label_Status}" />
+                <Label Grid.Row="2"
+                       Grid.Column="1">
+                    <TextBlock Text="{Binding Path=Status}" />
+                </Label>
+            </Grid>
+            <Grid Grid.Column="1"
+                  VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Button Grid.Row="0"
+                        Grid.Column="0"
+                        Click="Resend_OnClick"
+                        Content="{x:Static p:Resources.Label_Resend}"
+                        Visibility="{Binding Path=IsResendVisible, Converter={local:BoolToVisibilityConverter}}"
+                        BorderThickness="1, 1, 0, 1" />
+                <Button Grid.Row="0"
+                        Grid.Column="1"
+                        Click="OpenPdf_OnClick"
+                        Content="{x:Static p:Resources.Label_OpenPdf}" />
+            </Grid>
         </Grid>
-        <Grid Grid.Column="1"
-              VerticalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"></RowDefinition>
-            </Grid.RowDefinitions>
-            
-            <Button Grid.Row="0"
-                    Grid.Column="0"
-                    Click="Resend_OnClick"
-                    Content="{x:Static p:Resources.Label_Resend}"
-                    Visibility="{Binding Path=IsResendVisible, Converter={local:BoolToVisibilityConverter}}"
-                    BorderThickness="1, 1, 0, 1"/>
-            <Button Grid.Row="0"
-                    Grid.Column="1"
-                    Click="OpenPdf_OnClick"
-                    Content="{x:Static p:Resources.Label_OpenPdf}" />
-        </Grid>
-    </Grid>
+        <ProgressBar Minimum="0"
+                     Maximum="3"
+                     Height="5"
+                     HorizontalAlignment="Stretch"
+                     Value="{Binding Path=Fax.Status, Converter={local:FaxStatusToProgressConverter}, Mode=OneWay}"
+                     Foreground="{Binding Path=Fax.Status, Converter={local:FaxStatusToBrushConverter}, Mode=OneWay}"/>
+    </StackPanel>
 </UserControl>

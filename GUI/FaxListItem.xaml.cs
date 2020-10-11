@@ -39,7 +39,7 @@ namespace SipGateVirtualFaxGui
 
     public class FaxListItemViewModel : BaseViewModel
     {
-        public TrackedFax Fax { get; private set; }
+        public TrackedFax Fax { get; set; }
         public bool IsResendVisible => Fax.MayResend;
 
         public string Status
@@ -56,11 +56,6 @@ namespace SipGateVirtualFaxGui
                     _ => "???"
                 };
             }
-        }
-
-        public FaxListItemViewModel(TrackedFax fax)
-        {
-            Fax = ConfigureFax(fax);
         }
 
         private TrackedFax ConfigureFax(TrackedFax fax)

@@ -178,7 +178,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Status:.
+        ///   Looks up a localized string similar to Status.
         /// </summary>
         public static string Label_Status {
             get {

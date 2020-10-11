@@ -67,7 +67,10 @@ namespace SipGateVirtualFaxGui
                 var fax = FaxStuff.Instance.FaxScheduler
                     .ScheduleFax(newFaxModel.SelectedFaxline, newFaxModel.FaxNumber, newFaxModel.DocumentPath);
 
-                var faxListItemViewModel = new FaxListItemViewModel(fax);
+                var faxListItemViewModel = new FaxListItemViewModel
+                {
+                    Fax = fax
+                };
 
                 var viewModel = (FaxListViewModel) DataContext;
                 viewModel.Items.Insert(0, faxListItemViewModel);
