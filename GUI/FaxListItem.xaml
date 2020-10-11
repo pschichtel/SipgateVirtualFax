@@ -36,7 +36,7 @@
             <Label Grid.Row="1"
                    Grid.Column="0"
                    FontWeight="Bold"
-                   Content="{x:Static p:Resources.Label_Recipient}" />
+                   Content="{x:Static p:Resources.Label_Faxline}" />
             <Label Grid.Row="1"
                    Grid.Column="1"
                    Content="{Binding Path=Fax.Faxline.Alias}" />
