@@ -154,12 +154,24 @@ namespace SipgateVirtualFax.Core
                 }
 
                 var date = DateTime.Now.ToString("yyyy-MM-dd-HHmmss-fff");
-                var fileName = $"fax-scan-{date}.png";
-
-                string targetPath = Path.Combine(ScanBasePath, fileName);
+                var fileName = $"fax-scan-{date}";
+                
                 try
                 {
-                    img.Save(targetPath, ImageFormat.Png);
+                    string targetPath;
+                    var codecInfo = FindCodecForFormat(ImageFormat.Jpeg);
+                    if (codecInfo != null)
+                    {
+                        targetPath = Path.Combine(ScanBasePath, $"{fileName}.jpg");
+                        var encoderParams = new EncoderParameters(1);
+                        encoderParams.Param[0] = new EncoderParameter(Encoder.Quality, 75);
+                        img.Save(targetPath, codecInfo, encoderParams);
+                    }
+                    else
+                    {
+                        targetPath = Path.Combine(ScanBasePath, $"{fileName}.png");
+                        img.Save(targetPath, ImageFormat.Png);
+                    }
                     _logger.Info($"Saved scan at {targetPath} for transmission!");
                     scannedFiles.Enqueue(targetPath);
                 }
@@ -289,6 +301,19 @@ namespace SipgateVirtualFax.Core
                 return new Bitmap(e.FileDataPath);
             }
 
+            return null;
+        }
+
+        private static ImageCodecInfo? FindCodecForFormat(ImageFormat format)
+        {
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
             return null;
         }
     }
