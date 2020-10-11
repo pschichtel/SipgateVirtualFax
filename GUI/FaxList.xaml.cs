@@ -1,48 +1,63 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using NLog;
 using SipgateVirtualFax.Core;
+using SipgateVirtualFax.Core.Sipgate;
 
 namespace SipGateVirtualFaxGui
 {
-    public partial class FaxList : UserControl
+    public partial class FaxList
     {
-        private readonly NewFax _newFax = new NewFax();
         private readonly Logger _logger = Logging.GetLogger("gui-faxlist");
+        private Faxline[]? _faxlines; 
 
         public FaxList()
         {
             InitializeComponent();
         }
 
-        private async void New_OnClick(object sender, RoutedEventArgs @event)
+        private async Task<Faxline[]> LazilyLoadFaxlines()
         {
-            try
+            if (_faxlines == null)
             {
                 var faxlines = await FaxStuff.Instance.FaxClient.GetFaxLines();
+                _faxlines = faxlines;
+                return faxlines;
+            }
 
-                _newFax.ViewModel.Initialize(faxlines);
-                var window = new Window
-                {
-                    Title = Properties.Resources.NewFax,
-                    Content = _newFax,
-                    SizeToContent = SizeToContent.Height,
-                    Width = 500,
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                    Owner = Window.GetWindow(this)
-                };
-                window.ShowDialog();
+            return _faxlines;
+        }
+
+        private async void New_OnClick(object sender, RoutedEventArgs @event)
+        {
+            Faxline[] faxlines;
+            try
+            {
+                faxlines = await LazilyLoadFaxlines();
             }
             catch (Exception e)
             {
                 _logger.Error(e, "Failed to load faxlines from sipgate!");
                 MessageBox.Show(Properties.Resources.Err_FailedToLoadFaxlines);
+                return;
             }
 
-            var newFaxModel = _newFax.ViewModel;
-            if (newFaxModel.SelectedFaxLine == null || newFaxModel.DocumentPath == null)
+            var window = new NewFax(faxlines)
+            {
+                Title = Properties.Resources.NewFax,
+                SizeToContent = SizeToContent.Height,
+                Width = 500,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Window.GetWindow(this)
+            };
+            var newFaxModel = (NewFaxViewModel) window.DataContext;
+            newFaxModel.Faxlines = faxlines;
+            
+            window.ShowDialog();
+
+            if (newFaxModel.SelectedFaxline == null || newFaxModel.DocumentPath == null)
             {
                 return;
             }
@@ -50,7 +65,7 @@ namespace SipGateVirtualFaxGui
             try
             {
                 var fax = FaxStuff.Instance.FaxScheduler
-                    .ScheduleFax(newFaxModel.SelectedFaxLine, newFaxModel.FaxNumber, newFaxModel.DocumentPath);
+                    .ScheduleFax(newFaxModel.SelectedFaxline, newFaxModel.FaxNumber, newFaxModel.DocumentPath);
 
                 var faxListItemViewModel = new FaxListItemViewModel(fax);
 
@@ -60,7 +75,7 @@ namespace SipGateVirtualFaxGui
             catch (Exception e)
             {
                 _logger.Error(e,
-                    $"Failed to schedule the fax: faxline={newFaxModel.SelectedFaxLine}; recipient={newFaxModel.FaxNumber}; document={newFaxModel.DocumentPath}");
+                    $"Failed to schedule the fax: faxline={newFaxModel.SelectedFaxline}; recipient={newFaxModel.FaxNumber}; document={newFaxModel.DocumentPath}");
                 MessageBox.Show(Properties.Resources.Err_FailedToSendFax);
             }
         }

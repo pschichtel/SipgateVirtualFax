@@ -1,4 +1,4 @@
-<UserControl x:Class="SipGateVirtualFaxGui.NewFax"
+<Window x:Class="SipGateVirtualFaxGui.NewFax"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -10,9 +10,13 @@
              d:DesignWidth="300"
              Loaded="Window_Loaded">
     
-    <UserControl.Resources>
+    <Window.DataContext>
+        <local:NewFaxViewModel />
+    </Window.DataContext>
+    
+    <Window.Resources>
         <local:BoolInverter x:Key="BoolInverter" />
-    </UserControl.Resources>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -32,8 +36,8 @@
                Content="{x:Static p:Resources.Label_Faxline}" />
         <ComboBox Grid.Row="0"
                   Grid.Column="1"
-                  SelectedValue="{Binding Path=SelectedFaxLine}"
-                  ItemsSource="{Binding Path=FaxLines}"
+                  SelectedValue="{Binding Path=SelectedFaxline}"
+                  ItemsSource="{Binding Path=Faxlines}"
                   DisplayMemberPath="Alias"
                   SelectedIndex="0" />
         <Label Grid.Row="1"
@@ -80,4 +84,4 @@
             </Button>
         </Grid>
     </Grid>
-</UserControl>
+</Window>

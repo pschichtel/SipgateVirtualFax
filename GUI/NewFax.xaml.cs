@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,19 +12,23 @@ using SipgateVirtualFax.Core.Sipgate;
 
 namespace SipGateVirtualFaxGui
 {
-    public partial class NewFax : UserControl
+    public partial class NewFax
     {
-        public NewFaxViewModel ViewModel { get; }
-        public NewFax()
+        private Scanner _scanner;
+        public NewFax(Faxline[] faxlines)
         {
-            var window = Window.GetWindow(this);
+            var window = GetWindow(this);
             IntPtr handle = IntPtr.Zero;
             if (window != null)
             {
                 handle = new WindowInteropHelper(window).Handle;
             }
-            ViewModel = new NewFaxViewModel(handle);
-            DataContext = ViewModel;
+            _scanner = new Scanner()
+            {
+                ShowUi = true,
+                ParentWindow = handle,
+                ScanBasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
             InitializeComponent();
         }
         
@@ -38,7 +41,7 @@ namespace SipGateVirtualFaxGui
         private async void ScanButton_OnClick(object sender, RoutedEventArgs e)
         {
             var vm = (NewFaxViewModel) DataContext;
-            await vm.ScanAndSend();
+            await vm.ScanAndSend(_scanner);
             Close();
         }
 
@@ -48,48 +51,37 @@ namespace SipGateVirtualFaxGui
             vm.ChoosePdfAndSend();
             Close();
         }
-
-        private void Close()
-        {
-            Window.GetWindow(this)?.Close();
-        }
     }
 
     public class NewFaxViewModel : BaseViewModel
     {
-        private IEnumerable<Faxline>? _faxLines;
-        private Faxline? _selectedFaxLine;
+        private Faxline[] _faxlines = new Faxline[0];
+        private Faxline? _selectedFaxline;
         private string _faxNumber = "";
         private readonly Scanner _scanner;
         private readonly Logger _logger = Logging.GetLogger("gui-newfax-vm");
 
-        public NewFaxViewModel(IntPtr parentWindowHandle)
+        public Faxline[] Faxlines
         {
-            _scanner = new Scanner()
-            {
-                ShowUi = true,
-                ParentWindow = parentWindowHandle,
-                ScanBasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-            };
-        }
-
-        public IEnumerable<Faxline>? FaxLines
-        {
-            get => _faxLines;
+            get => _faxlines;
             set
             {
-                _faxLines = value;
-                OnPropertyChanged(nameof(FaxLines));
+                _faxlines = value;
+                OnPropertyChanged(nameof(Faxlines));
+                if (!_faxlines.Contains(SelectedFaxline))
+                {
+                    SelectedFaxline = _faxlines.Length > 0 ? _faxlines[0] : null;
+                }
             }
         }
 
-        public Faxline? SelectedFaxLine
+        public Faxline? SelectedFaxline
         {
-            get => _selectedFaxLine;
+            get => _selectedFaxline;
             set
             {
-                _selectedFaxLine = value;
-                OnPropertyChanged(nameof(SelectedFaxLine));
+                _selectedFaxline = value;
+                OnPropertyChanged(nameof(SelectedFaxline));
             }
         }
 
@@ -105,15 +97,7 @@ namespace SipGateVirtualFaxGui
 
         public string? DocumentPath { get; private set; }
 
-        public void Initialize(Faxline[] faxlines)
-        {
-            SelectedFaxLine = faxlines.FirstOrDefault();
-            FaxLines = faxlines;
-            FaxNumber = string.Empty;
-            DocumentPath = null;
-        }
-
-        public async Task ScanAndSend()
+        public async Task ScanAndSend(Scanner scanner)
         {
             try
             {

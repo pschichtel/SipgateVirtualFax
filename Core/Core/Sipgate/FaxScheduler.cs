@@ -198,7 +198,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             Id = null;
         }
 
-        protected internal void ChangeStatus(FaxScheduler scheduler, FaxStatus newStatus)
+        public TrackedFax ChangeStatus(FaxScheduler scheduler, FaxStatus newStatus)
         {
             if (newStatus != Status)
             {
@@ -223,6 +223,8 @@ namespace SipgateVirtualFax.Core.Sipgate
 
                 StatusChanged?.Invoke(scheduler, newStatus);
             }
+
+            return this;
         }
 
         public TrackedFax Resend()
