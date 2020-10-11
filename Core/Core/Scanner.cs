@@ -136,10 +136,7 @@ namespace SipgateVirtualFax.Core
         {
             TaskCompletionSource<IList<string>> completionSource = new TaskCompletionSource<IList<string>>();
             ConcurrentQueue<string> scannedFiles = new ConcurrentQueue<string>();
-
-            void TransferReady(object sender, TransferReadyEventArgs e)
-            {
-            }
+            Exception? error = null;
 
             void ProcessData(object o, DataTransferredEventArgs e)
             {
@@ -178,41 +175,36 @@ namespace SipgateVirtualFax.Core
                 catch (Exception exception)
                 {
                     _logger.Error(exception, "Failed to write image to disk!");
-                    Fail(exception);
+                    error = exception;
                 }
             }
 
             void TransferError(object sender, TransferErrorEventArgs args)
             {
                 _logger.Error(args.Exception, "TransferError");
-                completionSource.SetException(args.Exception);
             }
 
             void SourceDisabled(object sender, EventArgs args)
             {
-                Complete(scannedFiles.ToList());
+                Cleanup();
+                if (error != null)
+                {
+                    completionSource.SetException(error);
+                }
+                else
+                {
+                    IList<string> files = scannedFiles.ToList();
+                    completionSource.SetResult(files);
+                }
             }
 
             void Cleanup()
             {
-                session.TransferReady -= TransferReady;
                 session.DataTransferred -= ProcessData;
                 session.TransferError -= TransferError;
                 session.SourceDisabled -= SourceDisabled;
             }
 
-            void Complete(IList<string> files)
-            {
-                Cleanup();
-                completionSource.SetResult(files);
-            }
-
-            void Fail(Exception e)
-            {
-                Cleanup();
-                completionSource.SetException(e);
-            }
-            
             // if (ShouldEnableFeeder(source))
             // {
             //     _logger.Info("Scanner capabilities suggest, that we should use the ADF, trying to enable...");
@@ -221,8 +213,9 @@ namespace SipgateVirtualFax.Core
             //         _logger.Warn("Enabling the ADF failed.");
             //     }
             // }
+            
+            SetQualityPreferences(source);
 
-            session.TransferReady += TransferReady;
             session.DataTransferred += ProcessData;
             session.TransferError += TransferError;
             session.SourceDisabled += SourceDisabled;
@@ -248,6 +241,24 @@ namespace SipgateVirtualFax.Core
             if (canEnableFeeder && canGetFeederLoaded && canGetPaperDetectSupport)
             {
                 return source.Capabilities.CapFeederLoaded.GetCurrent() == BoolType.True;
+            }
+
+            return false;
+        }
+
+        private static void SetQualityPreferences(IDataSource source)
+        {
+            SetIfPossible(source.Capabilities.ICapPixelType, PixelType.BlackWhite);
+            SetIfPossible(source.Capabilities.ICapXResolution, 150);
+            SetIfPossible(source.Capabilities.ICapYResolution, 150);
+        }
+
+        private static bool SetIfPossible<T>(ICapWrapper<T> cap, T value)
+        {
+            if (cap.IsSupported && cap.CanSet)
+            {
+                cap.SetValue(value);
+                return true;
             }
 
             return false;
