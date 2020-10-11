@@ -266,5 +266,23 @@ namespace SipGateVirtualFaxGui.Properties {
                 return ResourceManager.GetString("Toolbox_RecipientInput", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to E&amp;xit.
+        /// </summary>
+        public static string Tray_Exit {
+            get {
+                return ResourceManager.GetString("Tray_Exit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Open.
+        /// </summary>
+        public static string Tray_Open {
+            get {
+                return ResourceManager.GetString("Tray_Open", resourceCulture);
+            }
+        }
     }
 }

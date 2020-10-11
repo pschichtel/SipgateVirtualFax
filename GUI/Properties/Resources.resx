@@ -88,4 +88,10 @@
     <data name="Toolbox_RecipientInput" xml:space="preserve">
         <value>Enter the recipient fax number here. The number requires at least a regional prefix.</value>
     </data>
+    <data name="Tray_Exit" xml:space="preserve">
+        <value>E&amp;xit</value>
+    </data>
+    <data name="Tray_Open" xml:space="preserve">
+        <value>&amp;Open</value>
+    </data>
 </root>

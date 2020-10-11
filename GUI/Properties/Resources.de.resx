@@ -88,4 +88,10 @@
     <data name="Toolbox_RecipientInput" xml:space="preserve">
         <value>Gib hier die Empfängerfaxnummer ein. Die Nummer muss mindests eine regionale Vorwahl enthalten.</value>
     </data>
+    <data name="Tray_Exit" xml:space="preserve">
+        <value>Be&amp;enden</value>
+    </data>
+    <data name="Tray_Open" xml:space="preserve">
+        <value>Öffnen</value>
+    </data>
 </root>
