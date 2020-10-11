@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -30,13 +31,13 @@ namespace SipgateVirtualFax.Core.Sipgate
         public string Alias { get; }
 
         [JsonProperty("groupId")]
-        public string GroupId { get; }
+        public string? GroupId { get; }
 
         [JsonProperty("canSend")]
         public bool CanSend { get; }
 
         [JsonConstructor]
-        public Faxline(string id, string alias, string groupId, bool canSend)
+        public Faxline(string id, string alias, string? groupId, bool canSend)
         {
             Id = id;
             Alias = alias;
@@ -47,6 +48,24 @@ namespace SipgateVirtualFax.Core.Sipgate
         public override string ToString()
         {
             return $"{nameof(Id)}: {Id}, {nameof(Alias)}: {Alias}, {nameof(GroupId)}: {GroupId}";
+        }
+
+        protected bool Equals(Faxline other)
+        {
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Faxline) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 
@@ -271,6 +290,43 @@ namespace SipgateVirtualFax.Core.Sipgate
                     _ => throw new JsonReaderException($"Value was not a valid fax entry status: {val}")
                 };
             }
+        }
+    }
+
+    public class UserInfoResponse
+    {
+        [JsonProperty("sub")]
+        public String Id { get; }
+
+        [JsonProperty("locale")]
+        public String Locale { get; }
+
+        public UserInfoResponse([JsonProperty("sub")] string id, string locale)
+        {
+            Id = id;
+            Locale = locale;
+        }
+    }
+    
+    public class GroupMembersResponse
+    {
+        [JsonProperty("items")]
+        public GroupMember[] Items { get; }
+
+        public GroupMembersResponse(GroupMember[] items)
+        {
+            Items = items;
+        }
+    }
+
+    public class GroupMember
+    {
+        [JsonProperty("id")]
+        public string Id { get; }
+
+        public GroupMember(string id)
+        {
+            Id = id;
         }
     }
 }

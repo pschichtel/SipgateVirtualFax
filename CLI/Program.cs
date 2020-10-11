@@ -87,7 +87,7 @@ namespace SipgateVirtualFax.CLI
             {
                 var faxClient = new SipgateFaxClient(options.Username ?? "", options.Password ?? "");
 
-                var faxlines = faxClient.GetFaxLines().Result;
+                var faxlines = await faxClient.GetAllUsableFaxlines();
                 if (faxlines.Length == 0)
                 {
                     logger.Info("The user has no faxlines available!");

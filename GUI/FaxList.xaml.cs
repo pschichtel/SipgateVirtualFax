@@ -22,7 +22,7 @@ namespace SipGateVirtualFaxGui
         {
             if (_faxlines == null)
             {
-                var faxlines = await FaxStuff.Instance.FaxClient.GetFaxLines();
+                var faxlines = await FaxStuff.Instance.FaxClient.GetAllUsableFaxlines();
                 _faxlines = faxlines;
                 return faxlines;
             }

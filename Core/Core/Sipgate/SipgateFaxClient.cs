@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -117,10 +119,51 @@ namespace SipgateVirtualFax.Core.Sipgate
             return SendRequest<HistoryEntry>(HttpMethod.Get, $"/history/{entryId}");
         }
 
-        public async Task<Faxline[]> GetFaxLines()
+        public async Task<Faxline[]> GetGroupFaxLines()
         {
             var response = await SendRequest<FaxlinesResponse>(HttpMethod.Get, "/groupfaxlines");
             return response.Items;
+        }
+
+        public async Task<Faxline[]> GetUserFaxLines(string userId)
+        {
+            var response = await SendRequest<FaxlinesResponse>(HttpMethod.Get, $"/{userId}/faxlines");
+            return response.Items;
+        }
+
+        public async Task<string> GetUserId()
+        {
+            var response = await SendRequest<UserInfoResponse>(HttpMethod.Get, "/authorization/userinfo");
+            return response.Id;
+        }
+
+        public async Task<string[]> GetGroupMembers(string groupId)
+        {
+            var response = await SendRequest<GroupMembersResponse>(HttpMethod.Get, $"/groups/{groupId}/users");
+            return response.Items.Select(i => i.Id).ToArray();
+        }
+
+        public async Task<Faxline[]> GetAllUsableFaxlines()
+        {
+            var userId = await GetUserId();
+            var userFaxLines = await GetUserFaxLines(userId);
+            var groupFaxlines = await GetGroupFaxLines();
+
+            var groups = groupFaxlines
+                .Select(f => f.GroupId ?? "")
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct();
+            
+            var groupsOfUser = (await Task.WhenAll(groups.Select(async g => (g, await GetGroupMembers(g)))))
+                .Where(e => e.Item2.Contains(userId))
+                .Select(e => e.Item1)
+                .ToHashSet();
+
+            var combined = new List<Faxline>();
+            combined.AddRange(userFaxLines);
+            combined.AddRange(groupFaxlines.Where(f => groupsOfUser.Contains(f.GroupId ?? "")));
+
+            return combined.Distinct().ToArray();
         }
     }
 }
