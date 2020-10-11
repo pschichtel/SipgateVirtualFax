@@ -159,9 +159,13 @@ namespace SipgateVirtualFax.Core
                     var codecInfo = FindCodecForFormat(ImageFormat.Jpeg);
                     if (codecInfo != null)
                     {
+                        // needs to be a long
+                        const long jpegQuality = 75L;
                         targetPath = Path.Combine(ScanBasePath, $"{fileName}.jpg");
-                        var encoderParams = new EncoderParameters(1);
-                        encoderParams.Param[0] = new EncoderParameter(Encoder.Quality, 75);
+                        var encoderParams = new EncoderParameters(1)
+                        {
+                            Param = {[0] = new EncoderParameter(Encoder.Quality, jpegQuality)}
+                        };
                         img.Save(targetPath, codecInfo, encoderParams);
                     }
                     else
@@ -246,22 +250,30 @@ namespace SipgateVirtualFax.Core
             return false;
         }
 
-        private static void SetQualityPreferences(IDataSource source)
+        private void SetQualityPreferences(IDataSource source)
         {
-            SetIfPossible(source.Capabilities.ICapPixelType, PixelType.BlackWhite);
-            SetIfPossible(source.Capabilities.ICapXResolution, 150);
-            SetIfPossible(source.Capabilities.ICapYResolution, 150);
+            if (SetIfPossible(source.Capabilities.ICapPixelType, PixelType.BlackWhite) != ReturnCode.Success)
+            {
+                _logger.Info("Failed to set quality preference: black and white scan");
+            }
+            if (SetIfPossible(source.Capabilities.ICapXResolution, 150) != ReturnCode.Success)
+            {
+                _logger.Info("Failed to set quality preference: 150 dpi (x axis)");
+            }
+            if (SetIfPossible(source.Capabilities.ICapYResolution, 150) != ReturnCode.Success)
+            {
+                _logger.Info("Failed to set quality preference: 150 dpi (y axis)");
+            }
         }
 
-        private static bool SetIfPossible<T>(ICapWrapper<T> cap, T value)
+        private static ReturnCode? SetIfPossible<T>(ICapWrapper<T> cap, T value)
         {
             if (cap.IsSupported && cap.CanSet)
             {
-                cap.SetValue(value);
-                return true;
+                return cap.SetValue(value);
             }
 
-            return false;
+            return null;
         }
 
         private bool EnableFeeder(IDataSource source)
