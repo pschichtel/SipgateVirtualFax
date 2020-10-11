@@ -44,7 +44,7 @@ namespace SipGateVirtualFaxGui
                 return;
             }
 
-            var window = new NewFax(faxlines)
+            var window = new NewFax()
             {
                 Title = Properties.Resources.NewFax,
                 SizeToContent = SizeToContent.Height,

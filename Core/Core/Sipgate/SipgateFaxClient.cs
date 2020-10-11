@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
+using NTwain.Data;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
@@ -59,30 +61,37 @@ namespace SipgateVirtualFax.Core.Sipgate
             return SendBasicRequest(method, path, content);
         }
 
+        private static async Task<HttpResponseMessage> SuccessfulResponse(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new SipgateApiHttpException("Unsuccessful response!", response.StatusCode, await response.Content.ReadAsStringAsync());
+            }
+
+            return response;
+        }
+
         private static async Task<TRes> TryProcessJson<TRes>(HttpResponseMessage result)
         {
             var responseContent = await result.Content.ReadAsStringAsync();
-            if (result.IsSuccessStatusCode)
+            try
             {
                 return JsonConvert.DeserializeObject<TRes>(responseContent);
             }
-
-            throw new Exception($"Result: status={result.StatusCode} content={responseContent}");
+            catch (Exception e)
+            {
+                throw new SipgateApiNonJsonException(responseContent, e);
+            }
         }
 
         private async Task<TRes> SendRequest<TRes>(HttpMethod method, string path)
         {
-            return await TryProcessJson<TRes>(await SendBasicRequest(method, path, null));
+            return await TryProcessJson<TRes>(await SuccessfulResponse(await SendBasicRequest(method, path, null)));
         }
 
-        private async Task<TRes> SendRequestWithResponse<TReq, TRes>(HttpMethod method, string path, TReq body)
+        private async Task<TRes> SendRequest<TReq, TRes>(HttpMethod method, string path, TReq body)
         {
-            var response = await SendRequestJson(method, path, body);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Unsuccessful response: {response.StatusCode}");
-            }
-            return await TryProcessJson<TRes>(response);
+            return await TryProcessJson<TRes>(await SuccessfulResponse(await SendRequestJson(method, path, body)));
         }
 
         private async Task<bool> SendRequest<TReq>(HttpMethod method, string path, TReq body)
@@ -95,17 +104,12 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             var request = new SendFaxRequest(faxLine, recipient, Path.GetFileName(pdfPath),
                 Convert.ToBase64String(File.ReadAllBytes(pdfPath)));
-            try
-            {
-                var response =
-                    await SendRequestWithResponse<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax",
-                        request);
-                return response.SessionId;
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Failed to parse the response from sipgate!", e);
-            }
+
+            var response =
+                await SendRequest<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax",
+                    request);
+            
+            return response.SessionId;
         }
 
         public Task<bool> AttemptFaxResend(string faxId, string faxlineId)
@@ -164,6 +168,28 @@ namespace SipgateVirtualFax.Core.Sipgate
             combined.AddRange(groupFaxlines.Where(f => groupsOfUser.Contains(f.GroupId ?? "")));
 
             return combined.Distinct().ToArray();
+        }
+    }
+
+    public class SipgateApiHttpException : Exception
+    {
+        public HttpStatusCode Status { get; }
+        public string Body { get; }
+
+        public SipgateApiHttpException(string message, HttpStatusCode status, string body) : base($"{message} - {status} {body}")
+        {
+            Status = status;
+            Body = body;
+        }
+    }
+
+    public class SipgateApiNonJsonException : Exception
+    {
+        public string Body { get; }
+
+        public SipgateApiNonJsonException(string body, Exception cause) : base($"Invalid JSON: {body}", cause)
+        {
+            Body = body;
         }
     }
 }

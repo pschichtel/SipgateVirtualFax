@@ -14,8 +14,9 @@ namespace SipGateVirtualFaxGui
 {
     public partial class NewFax
     {
-        private Scanner _scanner;
-        public NewFax(Faxline[] faxlines)
+        private readonly Scanner _scanner;
+        
+        public NewFax()
         {
             var window = GetWindow(this);
             IntPtr handle = IntPtr.Zero;
@@ -58,7 +59,6 @@ namespace SipGateVirtualFaxGui
         private Faxline[] _faxlines = new Faxline[0];
         private Faxline? _selectedFaxline;
         private string _faxNumber = "";
-        private readonly Scanner _scanner;
         private readonly Logger _logger = Logging.GetLogger("gui-newfax-vm");
 
         public Faxline[] Faxlines
@@ -101,7 +101,7 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                var paths = await _scanner.ScanWithDefault();
+                var paths = await scanner.ScanWithDefault();
                 if (paths.Count > 0)
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
