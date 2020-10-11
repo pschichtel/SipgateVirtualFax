@@ -55,7 +55,7 @@
                      Grid.Column="1"
                      Name="FaxNumber"
                      Margin="2"
-                     ToolTip="">
+                     ToolTip="{x:Static p:Resources.Toolbox_RecipientInput}">
                 <TextBox.Text>
                     <Binding Path="FaxNumber"
                              UpdateSourceTrigger="PropertyChanged">

@@ -85,4 +85,7 @@
     <data name="Status_Unknown" xml:space="preserve">
         <value>Unknown State</value>
     </data>
+    <data name="Toolbox_RecipientInput" xml:space="preserve">
+        <value>Enter the recipient fax number here. The number requires at least a regional prefix.</value>
+    </data>
 </root>

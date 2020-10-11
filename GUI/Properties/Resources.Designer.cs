@@ -257,5 +257,14 @@ namespace SipGateVirtualFaxGui.Properties {
                 return ResourceManager.GetString("Status_Unknown", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter the recipient fax number here. The number requires at least a regional prefix..
+        /// </summary>
+        public static string Toolbox_RecipientInput {
+            get {
+                return ResourceManager.GetString("Toolbox_RecipientInput", resourceCulture);
+            }
+        }
     }
 }

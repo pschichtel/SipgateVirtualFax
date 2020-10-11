@@ -257,5 +257,14 @@ namespace SipGateVirtualFaxGui.Properties {
                 return ResourceManager.GetString("Status_Unknown", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gib hier die Empfängerfaxnummer ein. Die Nummer muss mindests eine regionale Vorwahl enthalten..
+        /// </summary>
+        public static string Toolbox_RecipientInput {
+            get {
+                return ResourceManager.GetString("Toolbox_RecipientInput", resourceCulture);
+            }
+        }
     }
 }

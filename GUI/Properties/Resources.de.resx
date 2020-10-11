@@ -85,4 +85,7 @@
     <data name="Status_Unknown" xml:space="preserve">
         <value>Unbekannter Zustand</value>
     </data>
+    <data name="Toolbox_RecipientInput" xml:space="preserve">
+        <value>Gib hier die Empfängerfaxnummer ein. Die Nummer muss mindests eine regionale Vorwahl enthalten.</value>
+    </data>
 </root>
