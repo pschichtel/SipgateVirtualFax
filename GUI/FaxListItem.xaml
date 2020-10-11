@@ -65,12 +65,14 @@
 
                 <Button Grid.Row="0"
                         Grid.Column="0"
+                        Padding="3 0"
                         Click="Resend_OnClick"
                         Content="{x:Static p:Resources.Label_Resend}"
-                        Visibility="{Binding Path=IsResendVisible, Converter={local:BoolToVisibilityConverter}}"
+                        Visibility="{Binding Path=ShowResend, Converter={local:BoolToVisibilityConverter}, Mode=OneWay}"
                         BorderThickness="1, 1, 0, 1" />
                 <Button Grid.Row="0"
                         Grid.Column="1"
+                        Padding="3 0"
                         Click="OpenPdf_OnClick"
                         Content="{x:Static p:Resources.Label_OpenPdf}" />
             </Grid>

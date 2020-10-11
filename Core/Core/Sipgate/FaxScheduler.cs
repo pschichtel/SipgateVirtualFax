@@ -86,17 +86,17 @@ namespace SipgateVirtualFax.Core.Sipgate
                     fax.Id = await _client.SendFax(fax.Faxline.Id, fax.Recipient, fax.DocumentPath);
                 }
 
-                fax.ChangeStatus(this, FaxStatus.Sending);
+                fax.ChangeStatus(FaxStatus.Sending);
                 _scheduleCompletionCheck(fax);
             }
             catch (Exception e)
             {
                 _logger.Error(e,
-                    fax.Id == null
+                    fax.Id != null
                         ? $"Failed to resend the fax with id {fax.Id}"
                         : $"Failed to send a fax to {fax.Recipient}");
                 fax.FailureCause = e;
-                fax.ChangeStatus(this, FaxStatus.Failed);
+                fax.ChangeStatus(FaxStatus.Failed);
             }
         }
 
@@ -113,20 +113,20 @@ namespace SipgateVirtualFax.Core.Sipgate
                 switch (historyEntry.FaxStatus)
                 {
                     case FaxEntryStatus.Sent:
-                        fax.ChangeStatus(this, FaxStatus.SuccessfullySent);
+                        fax.ChangeStatus(FaxStatus.SuccessfullySent);
                         break;
                     case FaxEntryStatus.Failed:
-                        fax.ChangeStatus(this, FaxStatus.Failed);
+                        fax.ChangeStatus(FaxStatus.Failed);
                         break;
                     case FaxEntryStatus.Sending:
                     case FaxEntryStatus.Pending:
-                        fax.ChangeStatus(this, FaxStatus.Sending);
+                        fax.ChangeStatus(FaxStatus.Sending);
                         _scheduleCompletionCheck(fax);
                         break;
                     default:
                         _logger.Warn(
                             $"Fax {fax.Id} (to {fax.Recipient}) is in an unexpected state, marking it as such");
-                        fax.ChangeStatus(this, FaxStatus.Unknown);
+                        fax.ChangeStatus(FaxStatus.Unknown);
                         break;
                 }
             }
@@ -134,7 +134,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             {
                 _logger.Error(e, $"Failed to poll the history of fax {fax.Id} (to {fax.Recipient})");
                 fax.FailureCause = e;
-                fax.ChangeStatus(this, FaxStatus.Unknown);
+                fax.ChangeStatus(FaxStatus.Unknown);
             }
         }
 

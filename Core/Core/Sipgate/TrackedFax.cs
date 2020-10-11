@@ -14,7 +14,7 @@ namespace SipgateVirtualFax.Core.Sipgate
         public DateTime? SendTime { get; private set; }
         public DateTime? CompleteTime { get; private set; }
 
-        public delegate void StatusChangedHandler(FaxScheduler sender, FaxStatus newStatus);
+        public delegate void StatusChangedHandler(TrackedFax sender, FaxStatus newStatus);
 
         public event StatusChangedHandler? StatusChanged;
 
@@ -33,7 +33,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             Id = null;
         }
 
-        public TrackedFax ChangeStatus(FaxScheduler scheduler, FaxStatus newStatus)
+        public void ChangeStatus(FaxStatus newStatus)
         {
             if (newStatus != Status)
             {
@@ -56,10 +56,8 @@ namespace SipgateVirtualFax.Core.Sipgate
                     CompleteTime = DateTime.Now;
                 }
 
-                StatusChanged?.Invoke(scheduler, newStatus);
+                StatusChanged?.Invoke(this, newStatus);
             }
-
-            return this;
         }
 
         public TrackedFax Resend()

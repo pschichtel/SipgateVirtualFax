@@ -1,13 +1,13 @@
 using System;
 using System.Windows;
-using System.Windows.Controls;
 using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SipGateVirtualFaxGui
 {
-    public partial class FaxListItem : UserControl
+    public partial class FaxListItem
     {
         private readonly Logger _logger = Logging.GetLogger("gui-faxlist");
         
@@ -39,8 +39,13 @@ namespace SipGateVirtualFaxGui
 
     public class FaxListItemViewModel : BaseViewModel
     {
-        public TrackedFax Fax { get; set; }
-        public bool IsResendVisible => Fax.MayResend;
+        public TrackedFax Fax { get; private set; }
+        public bool ShowResend => Fax.MayResend;
+
+        public FaxListItemViewModel(TrackedFax fax)
+        {
+            Fax = ConfigureFax(fax);
+        }
 
         public string Status
         {
@@ -76,8 +81,8 @@ namespace SipGateVirtualFaxGui
         private void UpdateProperties()
         {
             OnPropertyChanged(nameof(Fax));
+            OnPropertyChanged(nameof(ShowResend));
             OnPropertyChanged(nameof(Status));
-            OnPropertyChanged(nameof(IsResendVisible));
         }
     }
 }

@@ -1,17 +1,22 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Windows;
 using System.Windows.Forms;
 using Application = System.Windows.Application;
 
 namespace SipGateVirtualFaxGui
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow
     {
-        private readonly NotifyIcon? _icon;
+        public static readonly DependencyProperty NotifyIconProperty =
+            DependencyProperty.Register(nameof(NotifyIcon), typeof(NotifyIcon), typeof(MainWindow), new UIPropertyMetadata(null));
+        
+        public NotifyIcon? NotifyIcon
+        {
+            get => (NotifyIcon?)GetValue(NotifyIconProperty);
+            set => SetValue(NotifyIconProperty, value);
+        }
         
         public MainWindow()
         {
@@ -21,10 +26,9 @@ namespace SipGateVirtualFaxGui
                 var icon = System.Drawing.Icon.ExtractAssociatedIcon(manifestModuleName);
                 if (icon != null)
                 {
-                    _icon = SetupIcon(icon);
+                    NotifyIcon = SetupIcon(icon);
                 }
             }
-
             InitializeComponent();
         }
 
@@ -61,14 +65,12 @@ namespace SipGateVirtualFaxGui
                 Show();
             };
             
-            //notifyIcon.ShowBalloonTip(2000, "Fax erfolgreich", "Fax an ... erfolgreich gesendet!", ToolTipIcon.Info);
-
             return notifyIcon;
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (_icon != null)
+            if (NotifyIcon != null)
             {
                 e.Cancel = true;
                 Hide();
@@ -77,7 +79,7 @@ namespace SipGateVirtualFaxGui
 
         protected override void OnClosed(EventArgs e)
         {
-            _icon?.Dispose();
+            NotifyIcon?.Dispose();
         }
     }
 }

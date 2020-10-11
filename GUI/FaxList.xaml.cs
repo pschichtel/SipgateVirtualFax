@@ -1,18 +1,20 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SipGateVirtualFaxGui
 {
     public partial class FaxList
     {
         private readonly Logger _logger = Logging.GetLogger("gui-faxlist");
-        private Faxline[]? _faxlines; 
-
+        private Faxline[]? _faxlines;
+        
         public FaxList()
         {
             InitializeComponent();
@@ -67,10 +69,27 @@ namespace SipGateVirtualFaxGui
                 var fax = FaxStuff.Instance.FaxScheduler
                     .ScheduleFax(newFaxModel.SelectedFaxline, newFaxModel.FaxNumber, newFaxModel.DocumentPath);
 
-                var faxListItemViewModel = new FaxListItemViewModel
+                var syncContext = SynchronizationContext.Current;
+                fax.StatusChanged += (scheduler, status) =>
                 {
-                    Fax = fax
+                    syncContext.Post(f =>
+                    {
+                        switch (status)
+                        {
+                            case FaxStatus.SuccessfullySent:
+                                _logger.Info("Fax send successfully!");
+                                break;
+                            case FaxStatus.Failed:
+                                _logger.Error(fax.FailureCause, "Fax failed to send!");
+                                break;
+                            case FaxStatus.Unknown:
+                                _logger.Warn(fax.FailureCause, "Fax sending entered an unknown state!");
+                                break;
+                        }
+                    }, fax);
                 };
+
+                var faxListItemViewModel = new FaxListItemViewModel(fax);
 
                 var viewModel = (FaxListViewModel) DataContext;
                 viewModel.Items.Insert(0, faxListItemViewModel);
