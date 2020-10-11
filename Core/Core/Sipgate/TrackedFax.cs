@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
@@ -64,6 +65,28 @@ namespace SipgateVirtualFax.Core.Sipgate
         public TrackedFax Resend()
         {
             return _resendCallback(this);
+        }
+
+        public bool MayResend
+        {
+            get
+            {
+                if (!Status.IsComplete())
+                {
+                    return false;
+                }
+
+                if (!Status.CanResend())
+                {
+                    return false;
+                }
+                if (FailureCause != null && FailureCause is SipgateApiHttpException e &&
+                    e.Status == HttpStatusCode.ProxyAuthenticationRequired)
+                {
+                    return false;
+                }
+                return true;
+            }
         }
 
         public override string ToString()
