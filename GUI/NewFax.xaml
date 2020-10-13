@@ -55,7 +55,8 @@
                      Grid.Column="1"
                      Name="FaxNumber"
                      Margin="2"
-                     ToolTip="{x:Static p:Resources.Toolbox_RecipientInput}">
+                     ToolTip="{x:Static p:Resources.Toolbox_RecipientInput}"
+                     FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}">
                 <TextBox.Text>
                     <Binding Path="FaxNumber"
                              UpdateSourceTrigger="PropertyChanged">

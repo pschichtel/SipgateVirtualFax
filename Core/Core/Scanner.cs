@@ -15,13 +15,6 @@ namespace SipgateVirtualFax.Core
 {
     public class Scanner
     {
-        private const int PreSession = 1;
-        private const int SourceManagerLoaded = 2;
-        private const int SourceManagerOpened = 3;
-        private const int SourceOpen = 4;
-        private const int SourceEnabled = 5;
-        private const int TransferReady = 6;
-        private const int Transferring = 7;
         
         private readonly Logger _logger = Logging.GetLogger("scanner");
         private readonly TWIdentity _appId;
@@ -118,16 +111,16 @@ namespace SipgateVirtualFax.Core
 
         private void LogState(ITwainSession session)
         {
-            var stateName = session.State switch
+            var stateName = session.StateEx switch
             {
-                PreSession => "Pre-Session",
-                SourceManagerLoaded => "Source Manager Loaded",
-                SourceManagerOpened => "Source Manager Opened",
-                SourceOpen => "Source Open",
-                SourceEnabled => "Source Enabled",
-                TransferReady => "Transfer Ready",
-                Transferring => "Transferring",
-                _ => "Unknown State"
+                State.DsmUnloaded => "Pre-Session",
+                State.DsmLoaded => "Source Manager Loaded",
+                State.DsmOpened => "Source Manager Opened",
+                State.SourceOpened => "Source Open",
+                State.SourceEnabled => "Source Enabled",
+                State.TransferReady => "Transfer Ready",
+                State.Transferring => "Transferring",
+                _ => "Invalid State"
             };
             _logger.Info($"TWAIN session state: {stateName}");
         }
@@ -137,7 +130,8 @@ namespace SipgateVirtualFax.Core
             TaskCompletionSource<IList<string>> completionSource = new TaskCompletionSource<IList<string>>();
             ConcurrentQueue<string> scannedFiles = new ConcurrentQueue<string>();
             Exception? error = null;
-
+            var wasReadyOnce = false;
+            
             void ProcessData(object o, DataTransferredEventArgs e)
             {
                 _logger.Info($"Received data from source {e.DataSource.Name}");
@@ -183,6 +177,15 @@ namespace SipgateVirtualFax.Core
                 }
             }
 
+            void TransferReady(object sender, TransferReadyEventArgs args)
+            {
+                wasReadyOnce = true;
+                _logger.Info($"EndOfJob={args.EndOfJob}");
+                _logger.Info($"EndOfJobFlag={args.EndOfJobFlag}");
+                _logger.Info($"PendingTransferCount={args.PendingTransferCount}");
+                _logger.Info($"PendingImageInfo={args.PendingImageInfo}");
+            }
+
             void TransferError(object sender, TransferErrorEventArgs args)
             {
                 _logger.Error(args.Exception, "TransferError");
@@ -190,7 +193,33 @@ namespace SipgateVirtualFax.Core
 
             void SourceDisabled(object sender, EventArgs args)
             {
-                Cleanup();
+                CompleteScan();
+            }
+
+            async void StateChanged(object sender, EventArgs args)
+            {
+                if (session.StateEx == State.SourceOpened && wasReadyOnce)
+                {
+                    _logger.Info("Detected state change to SourceOpened down from at least TransferReady! Scheduling tear down...");
+                    await Task.Delay(TimeSpan.FromSeconds(3));
+                    CompleteScan();
+                }
+            }
+
+            void CompleteScan()
+            {
+                if (completionSource.Task.IsCompleted)
+                {
+                    _logger.Warn("");
+                    return;
+                }
+                
+                session.DataTransferred -= ProcessData;
+                session.TransferError -= TransferError;
+                session.SourceDisabled -= SourceDisabled;
+                session.TransferReady -= TransferReady;
+                session.StateChanged -= StateChanged;
+                
                 if (error != null)
                 {
                     completionSource.SetException(error);
@@ -200,13 +229,6 @@ namespace SipgateVirtualFax.Core
                     IList<string> files = scannedFiles.ToList();
                     completionSource.SetResult(files);
                 }
-            }
-
-            void Cleanup()
-            {
-                session.DataTransferred -= ProcessData;
-                session.TransferError -= TransferError;
-                session.SourceDisabled -= SourceDisabled;
             }
 
             // if (ShouldEnableFeeder(source))
@@ -220,9 +242,11 @@ namespace SipgateVirtualFax.Core
             
             SetQualityPreferences(source);
 
+            session.TransferReady += TransferReady;
             session.DataTransferred += ProcessData;
             session.TransferError += TransferError;
             session.SourceDisabled += SourceDisabled;
+            session.StateChanged += StateChanged;
 
             var uiMode = ShowUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
             _logger.Info("Enabling source...");
