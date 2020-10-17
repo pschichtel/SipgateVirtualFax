@@ -35,6 +35,9 @@ namespace SipgateVirtualFax.CLI
         [Option('f', "faxline", Required = false, HelpText = "The sipgate faxline to use.")]
         public string? Faxline { get; set; }
 
+        [Option('s', "scanner", Required = false, HelpText = "The name of the scanner to be used.")]
+        public string? Scanner { get; set; }
+
         public Options()
         {
             Images = new List<string>();
@@ -71,7 +74,14 @@ namespace SipgateVirtualFax.CLI
                         ShowUi = options.UseScannerUI,
                         ScanBasePath = "."
                     };
-                    paths = await scanner.ScanWithDefault();
+                    if (options.Scanner != null)
+                    {
+                        paths = await scanner.Scan((source) => source.Name.Equals(options.Scanner, StringComparison.OrdinalIgnoreCase));
+                    }
+                    else
+                    {
+                        paths = await scanner.ScanWithDefault();
+                    }
                 }
 
                 documentPath = Path.ChangeExtension(paths.First(), "pdf");

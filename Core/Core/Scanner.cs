@@ -21,6 +21,7 @@ namespace SipgateVirtualFax.Core
         public bool ShowUi { get; set; } = true;
         public IntPtr ParentWindow { get; set; } = IntPtr.Zero;
         public string ScanBasePath { get; set; } = Path.GetTempPath();
+        public TimeSpan SourceEnabledTimeout { get; set; } = TimeSpan.FromSeconds(5);
 
         public Scanner()
         {
@@ -42,6 +43,12 @@ namespace SipgateVirtualFax.Core
         {
             var session = CreateSession();
 
+            foreach (var availableSource in session.GetSources())
+            {
+                _logger.Info($"Available scanner: {availableSource.Name}");
+            }
+            _logger.Info($"Default scanner: {session.DefaultSource.Name}");
+
             IDataSource? source;
             if (sourceFilter != null)
             {
@@ -59,6 +66,8 @@ namespace SipgateVirtualFax.Core
                 session.Close();
                 throw new Exception("Source not found!");
             }
+
+            _logger.Info($"Scanner being used: {source.Name}");
 
             if (source.Open() != ReturnCode.Success)
             {
@@ -189,12 +198,29 @@ namespace SipgateVirtualFax.Core
                 _logger.Error(args.Exception, "TransferError");
             }
 
-            void StateChanged(object sender, EventArgs args)
+            void SourceDisabled(object sender, EventArgs e)
+            {
+                CompleteScan();
+            }
+
+            void InitiallyEnabled(object sender, EventArgs args)
+            {
+                if (session.StateEx == State.SourceEnabled)
+                {
+                    _logger.Info("Source initially enabled...");
+                    session.StateChanged -= InitiallyEnabled;
+                    session.StateChanged += ReturnedToEnabled;
+                }
+            }
+
+            async void ReturnedToEnabled(object sender, EventArgs args)
             {
                 // SourceDisabled apparently is unreliable, so we track StateChanged instead
-                if (session.StateEx == State.SourceOpened)
+                if (session.StateEx == State.SourceEnabled)
                 {
-                    _logger.Info("State changed to SourceOpened again, I guess we are done here...");
+                    _logger.Info("Returned back to SourceEnabled, wait a bit and then finish up.");
+                    await Task.Delay(SourceEnabledTimeout);
+                    _logger.Info("Timed out, finishing up");
                     CompleteScan();
                 }
             }
@@ -203,15 +229,17 @@ namespace SipgateVirtualFax.Core
             {
                 if (completionSource.Task.IsCompleted)
                 {
-                    _logger.Warn("");
+                    _logger.Warn("Scan was already completed, apparently the scan properly finished while waiting for the SourceEnabled timeout");
                     return;
                 }
                 
                 session.DataTransferred -= ProcessData;
                 session.TransferError -= TransferError;
                 session.TransferReady -= TransferReady;
-                session.StateChanged -= StateChanged;
-                
+                session.SourceDisabled -= SourceDisabled;
+                session.StateChanged -= InitiallyEnabled;
+                session.StateChanged -= ReturnedToEnabled;
+
                 if (error != null)
                 {
                     completionSource.SetException(error);
@@ -237,7 +265,8 @@ namespace SipgateVirtualFax.Core
             session.TransferReady += TransferReady;
             session.DataTransferred += ProcessData;
             session.TransferError += TransferError;
-            session.StateChanged += StateChanged;
+            session.SourceDisabled += SourceDisabled;
+            session.StateChanged += InitiallyEnabled;
 
             var uiMode = ShowUi ? SourceEnableMode.ShowUI : SourceEnableMode.NoUI;
             _logger.Info("Enabling source...");

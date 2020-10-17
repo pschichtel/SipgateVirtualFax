@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -101,7 +102,19 @@ namespace SipGateVirtualFaxGui
         {
             try
             {
-                var paths = await scanner.ScanWithDefault();
+                var device = Environment.GetEnvironmentVariable("SIPGATE_FAX_SCANNER");
+                IList<string> paths;
+                if (device != null)
+                {
+                    _logger.Info($"Trying to scan with device '{device}'");
+                    paths = await scanner.Scan(source => source.Name.Equals(device, StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    _logger.Info("Scanning with default scanner...");
+                    paths = await scanner.ScanWithDefault();
+                }
+                
                 if (paths.Count > 0)
                 {
                     var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
