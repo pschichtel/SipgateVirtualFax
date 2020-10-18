@@ -94,4 +94,7 @@
     <data name="Tray_Open" xml:space="preserve">
         <value>&amp;Open</value>
     </data>
+    <data name="Label_Scanner" xml:space="preserve">
+        <value>Scanner</value>
+    </data>
 </root>

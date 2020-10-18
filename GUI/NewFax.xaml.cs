@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
 using Microsoft.Win32;
 using NLog;
@@ -15,8 +16,9 @@ namespace SipGateVirtualFaxGui
 {
     public partial class NewFax
     {
+        private readonly Logger _logger = Logging.GetLogger("gui-newfax");
         private readonly Scanner _scanner;
-        
+
         public NewFax()
         {
             var window = GetWindow(this);
@@ -25,6 +27,7 @@ namespace SipGateVirtualFaxGui
             {
                 handle = new WindowInteropHelper(window).Handle;
             }
+
             _scanner = new Scanner()
             {
                 ShowUi = true,
@@ -32,8 +35,15 @@ namespace SipGateVirtualFaxGui
                 ScanBasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
             };
             InitializeComponent();
+
+            PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Escape) Close();
+            };
+
+            ((NewFaxViewModel) DataContext).Scanners = _scanner.GetScanners();
         }
-        
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // we manually fire the bindings so we get the validation initially
@@ -43,8 +53,16 @@ namespace SipGateVirtualFaxGui
         private async void ScanButton_OnClick(object sender, RoutedEventArgs e)
         {
             var vm = (NewFaxViewModel) DataContext;
-            await vm.ScanAndSend(_scanner);
-            Close();
+            try
+            {
+                await vm.ScanAndSend(_scanner);
+                Close();
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Scanning failed");
+                MessageBox.Show(Properties.Resources.Err_ScanningFailed);
+            }
         }
 
         private void PdfButton_OnClick(object sender, RoutedEventArgs e)
@@ -58,8 +76,10 @@ namespace SipGateVirtualFaxGui
     public class NewFaxViewModel : BaseViewModel
     {
         private Faxline[] _faxlines = new Faxline[0];
+        private ScannerSelector[] _scanners = new ScannerSelector[0];
         private Faxline? _selectedFaxline;
         private string _faxNumber = "";
+        private ScannerSelector? _selectedScanner;
         private readonly Logger _logger = Logging.GetLogger("gui-newfax-vm");
 
         public Faxline[] Faxlines
@@ -73,6 +93,16 @@ namespace SipGateVirtualFaxGui
                 {
                     SelectedFaxline = _faxlines.Length > 0 ? _faxlines[0] : null;
                 }
+            }
+        }
+
+        public ScannerSelector[] Scanners
+        {
+            get => _scanners;
+            set
+            {
+                _scanners = value;
+                OnPropertyChanged(nameof(Scanners));
             }
         }
 
@@ -96,40 +126,41 @@ namespace SipGateVirtualFaxGui
             }
         }
 
+        public ScannerSelector? SelectedScanner
+        {
+            get => _selectedScanner;
+            set
+            {
+                _selectedScanner = value;
+                OnPropertyChanged(nameof(SelectedScanner));
+            }
+        }
+
         public string? DocumentPath { get; private set; }
 
         public async Task ScanAndSend(Scanner scanner)
         {
-            try
+            IList<string> paths;
+            if (SelectedScanner == null)
             {
-                var device = Environment.GetEnvironmentVariable("SIPGATE_FAX_SCANNER");
-                IList<string> paths;
-                if (device != null)
-                {
-                    _logger.Info($"Trying to scan with device '{device}'");
-                    paths = await scanner.Scan(source => source.Name.Equals(device, StringComparison.OrdinalIgnoreCase));
-                }
-                else
-                {
-                    _logger.Info("Scanning with default scanner...");
-                    paths = await scanner.ScanWithDefault();
-                }
-                
-                if (paths.Count > 0)
-                {
-                    var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
-                    ImageToPdfConverter.Convert(paths, pdfPath);
-                    DocumentPath = pdfPath;
-                }
-                else
-                {
-                    MessageBox.Show(Properties.Resources.NoDocumentScanned);
-                }
+                _logger.Info("Scanning with default scanner...");
+                paths = await scanner.ScanWithDefault();
             }
-            catch (Exception e)
+            else
             {
-                _logger.Error(e, "Scanning failed");
-                MessageBox.Show(Properties.Resources.Err_ScanningFailed);
+                _logger.Info($"Trying to scan with device '{SelectedScanner.Name}'");
+                paths = await scanner.Scan(SelectedScanner.Selector);
+            }
+
+            if (paths.Count > 0)
+            {
+                var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
+                ImageToPdfConverter.Convert(paths, pdfPath);
+                DocumentPath = pdfPath;
+            }
+            else
+            {
+                MessageBox.Show(Properties.Resources.NoDocumentScanned);
             }
         }
 

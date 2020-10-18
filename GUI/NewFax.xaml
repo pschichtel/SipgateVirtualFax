@@ -29,7 +29,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
@@ -66,6 +65,15 @@
                     </Binding>
                 </TextBox.Text>
             </TextBox>
+            <Label Grid.Row="2"
+                   Grid.Column="0"
+                   Content="{x:Static p:Resources.Label_Scanner}" />
+            <ComboBox Grid.Row="2"
+                      Grid.Column="1"
+                      SelectedValue="{Binding Path=SelectedScanner}"
+                      ItemsSource="{Binding Path=Scanners}"
+                      DisplayMemberPath="Name"
+                      Margin="2" />
         </Grid>
         
         <Grid Grid.Row="2"

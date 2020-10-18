@@ -169,6 +169,15 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scanner.
+        /// </summary>
+        public static string Label_Scanner {
+            get {
+                return ResourceManager.GetString("Label_Scanner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Vorhandenes Dokument auswählen.
         /// </summary>
         public static string Label_SelectExistingDocument {

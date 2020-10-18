@@ -29,21 +29,16 @@ namespace SipgateVirtualFax.Core
             PlatformInfo.Current.PreferNewDSM = false;
         }
 
-        public List<(string, Func<IDataSource, bool>)> GetScanners()
+        public ScannerSelector[] GetScanners()
         {
-            (string, Func<IDataSource, bool>) CreateSelector(IDataSource source)
+            ScannerSelector CreateSelector(IDataSource source)
             {
                 var name = source.Name;
-                Func<IDataSource, bool> selector = s => s.Name.Equals(name);
-                return (name, selector);
+                bool Selector(IDataSource s) => s.Name.Equals(name);
+                return new ScannerSelector(name, Selector);
             }
             var session = CreateSession();
-            if (session == null)
-            {
-                return new List<(string, Func<IDataSource, bool>)>();
-            }
-            var scanners = session.GetSources().Select(CreateSelector).ToList();
-            return scanners;
+            return session.GetSources().Select(CreateSelector).ToArray();
         }
 
         public Task<IList<string>> ScanWithDefault()
