@@ -18,6 +18,14 @@
         <local:BoolInverter x:Key="BoolInverter" />
     </Window.Resources>
     
+    <Window.InputBindings>
+        <KeyBinding Command="ApplicationCommands.Close" Key="Escape" />
+    </Window.InputBindings>
+
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandBinding_Executed" />
+    </Window.CommandBindings>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

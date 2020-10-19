@@ -36,11 +36,6 @@ namespace SipGateVirtualFaxGui
             };
             InitializeComponent();
 
-            PreviewKeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Escape) Close();
-            };
-
             ((NewFaxViewModel) DataContext).Scanners = _scanner.GetScanners();
         }
 
@@ -48,6 +43,11 @@ namespace SipGateVirtualFaxGui
         {
             // we manually fire the bindings so we get the validation initially
             FaxNumber.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        }
+
+        private void CloseCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Close();
         }
 
         private async void ScanButton_OnClick(object sender, RoutedEventArgs e)
