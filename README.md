@@ -5,17 +5,16 @@ A simple tool that uses TWAIN to scan a document, embeds it into a PDF and sends
 What works?
 
 - Single page flatbed scanning (using ntwain)
-- Converting the resting image into a PDF (using iTextSharp)
+- Converting the resulting image into a PDF (using iTextSharp)
 - Pulling available group faxlines from sipgate
-- Sending the PDF as a fax
 - Fax status polling
 - Fax existing PDF without scanning
 - Offering resend upon send failure
 - Initial progress reporting
+- Progress indication in the UI
 
 What's still missing?
 
 - multi page scanning using ADF
 - multi page scanning using manual swap with UI guidance
-- Progress indication in the UI
 - Contact book integration
