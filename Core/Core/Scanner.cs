@@ -124,7 +124,7 @@ namespace SipgateVirtualFax.Core
 
             if (returnCode != ReturnCode.Success)
             {
-                throw new Exception($"Failed to open session: {session}");
+                throw new Exception($"Failed to open session: {returnCode}");
             }
             
             return session;
