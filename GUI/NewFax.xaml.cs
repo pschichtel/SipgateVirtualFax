@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -57,13 +56,34 @@ namespace SipGateVirtualFaxGui
             Close();
         }
 
-        private async void ScanButton_OnClick(object sender, RoutedEventArgs e)
+        private async void ScanDocumentAndSend(object sender, RoutedEventArgs e)
         {
             var vm = (NewFaxViewModel) DataContext;
             try
             {
-                await vm.ScanAndSend(_scanner);
-                Close();
+                IList<string> paths;
+                if (vm.SelectedScanner == null)
+                {
+                    _logger.Info("Scanning with default scanner...");
+                    paths = await _scanner.ScanWithDefault();
+                }
+                else
+                {
+                    _logger.Info($"Trying to scan with device '{vm.SelectedScanner.Name}'");
+                    paths = await _scanner.Scan(vm.SelectedScanner.Selector);
+                }
+
+                if (paths.Count > 0)
+                {
+                    var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
+                    ImageToPdfConverter.Convert(paths, pdfPath);
+                    vm.DocumentPath = pdfPath;
+                    Close();
+                }
+                else
+                {
+                    MessageBox.Show(this, Properties.Resources.NoDocumentScanned);
+                }
             }
             catch (ScanningException ex)
             {
@@ -83,15 +103,21 @@ namespace SipGateVirtualFaxGui
             catch (Exception ex)
             {
                 _logger.Error(ex, "Scanning failed for a reason unrelated to scanning.");
-                MessageBox.Show(Properties.Resources.Err_ScanningFailed);
+                MessageBox.Show(this, Properties.Resources.Err_ScanningFailed);
             }
         }
 
-        private void PdfButton_OnClick(object sender, RoutedEventArgs e)
+        private void SelectPdfAndSend(object sender, RoutedEventArgs e)
         {
-            var vm = (NewFaxViewModel) DataContext;
-            vm.ChoosePdfAndSend();
-            Close();
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = $"{Properties.Resources.PdfDocuments} (*.pdf)|*.pdf"
+            };
+            if (openFileDialog.ShowDialog() ?? false)
+            {
+                ((NewFaxViewModel) DataContext).DocumentPath = openFileDialog.FileName;
+                Close();
+            }
         }
     }
 
@@ -102,7 +128,6 @@ namespace SipGateVirtualFaxGui
         private Faxline? _selectedFaxline;
         private string _faxNumber = "";
         private ScannerSelector? _selectedScanner;
-        private readonly Logger _logger = Logging.GetLogger("gui-newfax-vm");
 
         public Faxline[] Faxlines
         {
@@ -158,46 +183,6 @@ namespace SipGateVirtualFaxGui
             }
         }
 
-        public string? DocumentPath { get; private set; }
-
-        public async Task ScanAndSend(Scanner scanner)
-        {
-            IList<string> paths;
-            if (SelectedScanner == null)
-            {
-                _logger.Info("Scanning with default scanner...");
-                paths = await scanner.ScanWithDefault();
-            }
-            else
-            {
-                _logger.Info($"Trying to scan with device '{SelectedScanner.Name}'");
-                paths = await scanner.Scan(SelectedScanner.Selector);
-            }
-
-            if (paths.Count > 0)
-            {
-                var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
-                ImageToPdfConverter.Convert(paths, pdfPath);
-                DocumentPath = pdfPath;
-            }
-            else
-            {
-                MessageBox.Show(Properties.Resources.NoDocumentScanned);
-            }
-        }
-
-        public void ChoosePdfAndSend()
-        {
-            var openFileDialog = new OpenFileDialog
-            {
-                Filter = $"{Properties.Resources.PdfDocuments} (*.pdf)|*.pdf"
-            };
-            if (openFileDialog.ShowDialog() != true)
-            {
-                return;
-            }
-
-            DocumentPath = openFileDialog.FileName;
-        }
+        public string? DocumentPath { get; internal set; }
     }
 }
