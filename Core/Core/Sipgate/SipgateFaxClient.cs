@@ -129,7 +129,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             return response.Items;
         }
 
-        public async Task<Faxline[]> GetUserFaxLines(string userId)
+        public async Task<IEnumerable<Faxline>> GetUserFaxLines(string userId)
         {
             var response = await SendRequest<FaxlinesResponse>(HttpMethod.Get, $"/{userId}/faxlines");
             return response.Items;
@@ -147,10 +147,8 @@ namespace SipgateVirtualFax.Core.Sipgate
             return response.Items.Select(i => i.Id).ToArray();
         }
 
-        public async Task<Faxline[]> GetAllUsableFaxlines()
+        public async Task<IEnumerable<Faxline>> GetUsableGroupFaxlines(string userId)
         {
-            var userId = await GetUserId();
-            var userFaxLines = await GetUserFaxLines(userId);
             var groupFaxlines = await GetGroupFaxLines();
 
             var groups = groupFaxlines
@@ -163,11 +161,15 @@ namespace SipgateVirtualFax.Core.Sipgate
                 .Select(e => e.Item1)
                 .ToHashSet();
 
-            var combined = new List<Faxline>();
-            combined.AddRange(userFaxLines);
-            combined.AddRange(groupFaxlines.Where(f => groupsOfUser.Contains(f.GroupId ?? "")));
+            return groupFaxlines.Where(f => groupsOfUser.Contains(f.GroupId ?? ""));
+        }
 
-            return combined.Distinct().ToArray();
+        public async Task<Faxline[]> GetAllUsableFaxlines()
+        {
+            var userId = await GetUserId();
+            return (await Task.WhenAll(GetUserFaxLines(userId), GetUsableGroupFaxlines(userId)))
+                .SelectMany(lines => lines)
+                .ToArray();
         }
     }
 
