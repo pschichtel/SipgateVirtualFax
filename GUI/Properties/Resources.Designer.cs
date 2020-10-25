@@ -133,6 +133,69 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to close the scanner subsystem connection. The scan possibly still succeeded..
+        /// </summary>
+        public static string Err_TwainFailedToCloseSession {
+            get {
+                return ResourceManager.GetString("Err_TwainFailedToCloseSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to close the scanner connection! The scan possibly still succeeded..
+        /// </summary>
+        public static string Err_TwainFailedToCloseSource {
+            get {
+                return ResourceManager.GetString("Err_TwainFailedToCloseSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to contact the scanner subsystem!.
+        /// </summary>
+        public static string Err_TwainFailedToCreateSession {
+            get {
+                return ResourceManager.GetString("Err_TwainFailedToCreateSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to activate the scanner!.
+        /// </summary>
+        public static string Err_TwainFailedToEnableSource {
+            get {
+                return ResourceManager.GetString("Err_TwainFailedToEnableSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to contact the scanner!.
+        /// </summary>
+        public static string Err_TwainFailedToOpenSource {
+            get {
+                return ResourceManager.GetString("Err_TwainFailedToOpenSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The image data of the scan could not be read! Please report this to a developer!.
+        /// </summary>
+        public static string Err_TwainFailedToReadScannedImage {
+            get {
+                return ResourceManager.GetString("Err_TwainFailedToReadScannedImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown scanning related error occurred. Please report this to the developer!.
+        /// </summary>
+        public static string Err_TwainUnknown {
+            get {
+                return ResourceManager.GetString("Err_TwainUnknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Faxline.
         /// </summary>
         public static string Label_Faxline {

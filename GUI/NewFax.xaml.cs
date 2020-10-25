@@ -65,9 +65,24 @@ namespace SipGateVirtualFaxGui
                 await vm.ScanAndSend(_scanner);
                 Close();
             }
+            catch (ScanningException ex)
+            {
+                var message = ex.Error switch
+                {
+                    ScanningError.FailedToCreateSession => Properties.Resources.Err_TwainFailedToCreateSession,
+                    ScanningError.Unknown => Properties.Resources.Err_TwainUnknown,
+                    ScanningError.FailedToReadScannedImage => Properties.Resources.Err_TwainFailedToReadScannedImage,
+                    ScanningError.FailedToEnableSource => Properties.Resources.Err_TwainFailedToEnableSource,
+                    ScanningError.FailedToCloseSource => Properties.Resources.Err_TwainFailedToCloseSource,
+                    ScanningError.FailedToCloseSession => Properties.Resources.Err_TwainFailedToCloseSession,
+                    ScanningError.FailedToOpenSource => Properties.Resources.Err_TwainFailedToOpenSource,
+                    _ => Properties.Resources.Err_TwainUnknown
+                };
+                MessageBox.Show(message);
+            }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Scanning failed");
+                _logger.Error(ex, "Scanning failed for a reason unrelated to scanning.");
                 MessageBox.Show(Properties.Resources.Err_ScanningFailed);
             }
         }

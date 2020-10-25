@@ -65,7 +65,8 @@ namespace SipgateVirtualFax.Core
             if (source == null)
             {
                 session.Close();
-                throw new Exception("Source not found!");
+                _logger.Error("Source not found!");
+                throw new ScanningException(ScanningError.FailedToCreateSession);
             }
 
             _logger.Info($"Scanner being used: {source.Name}");
@@ -73,7 +74,8 @@ namespace SipgateVirtualFax.Core
             if (source.Open() != ReturnCode.Success)
             {
                 session.Close();
-                throw new Exception("Failed to open source!");
+                _logger.Error("Failed to open source!");
+                throw new ScanningException(ScanningError.FailedToOpenSource);
             }
             
             _logger.Info($"Enabled source {source.Name} successfully!");
@@ -87,13 +89,15 @@ namespace SipgateVirtualFax.Core
                 if (source.Close() != ReturnCode.Success)
                 {
                     session.Close();
-                    throw new Exception("Failed to close source!");
+                    _logger.Error("Failed to close source!");
+                    throw new ScanningException(ScanningError.FailedToCloseSource);
                 }
 
                 _logger.Info("Closing session...");
                 if (session.Close() != ReturnCode.Success)
                 {
-                    throw new Exception("Failed to close session!");
+                    _logger.Error("Failed to close session!");
+                    throw new ScanningException(ScanningError.FailedToCloseSession);
                 }
             }
 
@@ -113,7 +117,8 @@ namespace SipgateVirtualFax.Core
 
             if (returnCode != ReturnCode.Success)
             {
-                throw new Exception($"Failed to open session: {returnCode}");
+                _logger.Error($"Failed to open session: {returnCode}");
+                throw new ScanningException(ScanningError.FailedToCreateSession);
             }
             
             return session;
@@ -149,7 +154,7 @@ namespace SipgateVirtualFax.Core
                 if (img == null)
                 {
                     _logger.Error("Failed to create image from transferred data!");
-                    completionSource.SetException(new Exception("Failed to create an image from data"));
+                    completionSource.SetException(new ScanningException(ScanningError.FailedToReadScannedImage));
                     return;
                 }
 
@@ -182,7 +187,7 @@ namespace SipgateVirtualFax.Core
                 catch (Exception exception)
                 {
                     _logger.Error(exception, "Failed to write image to disk!");
-                    error = exception;
+                    error = new ScanningException(ScanningError.Unknown, exception);
                 }
             }
 
@@ -274,7 +279,8 @@ namespace SipgateVirtualFax.Core
             var result = source.Enable(uiMode, true, ParentWindow);
             if (result != ReturnCode.Success)
             {
-                throw new Exception($"Failed to enable data source: {result}");
+                _logger.Error($"Failed to enable data source: {result}");
+                throw new ScanningException(ScanningError.FailedToEnableSource);
             }
 
             return completionSource.Task;
@@ -383,6 +389,27 @@ namespace SipgateVirtualFax.Core
                 }
             }
             return null;
+        }
+    }
+
+    public enum ScanningError
+    {
+        FailedToCreateSession,
+        Unknown,
+        FailedToReadScannedImage,
+        FailedToEnableSource,
+        FailedToCloseSource,
+        FailedToCloseSession,
+        FailedToOpenSource
+    }
+
+    public class ScanningException : Exception
+    {
+        public ScanningError Error { get; }
+
+        public ScanningException(ScanningError error, Exception? cause = null) : base($"Scanning failed: {error}", cause)
+        {
+            Error = error;
         }
     }
 }

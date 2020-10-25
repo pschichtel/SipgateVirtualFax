@@ -100,4 +100,25 @@
     <data name="DefaultScanner" xml:space="preserve">
         <value>Default Scanner</value>
     </data>
+    <data name="Err_TwainFailedToCreateSession" xml:space="preserve">
+        <value>Failed to contact the scanner subsystem!</value>
+    </data>
+    <data name="Err_TwainFailedToReadScannedImage" xml:space="preserve">
+        <value>The image data of the scan could not be read! Please report this to a developer!</value>
+    </data>
+    <data name="Err_TwainFailedToCloseSource" xml:space="preserve">
+        <value>Failed to close the scanner connection! The scan possibly still succeeded.</value>
+    </data>
+    <data name="Err_TwainFailedToCloseSession" xml:space="preserve">
+        <value>Failed to close the scanner subsystem connection. The scan possibly still succeeded.</value>
+    </data>
+    <data name="Err_TwainFailedToOpenSource" xml:space="preserve">
+        <value>Failed to contact the scanner!</value>
+    </data>
+    <data name="Err_TwainFailedToEnableSource" xml:space="preserve">
+        <value>Failed to activate the scanner!</value>
+    </data>
+    <data name="Err_TwainUnknown" xml:space="preserve">
+        <value>An unknown scanning related error occurred. Please report this to the developer!</value>
+    </data>
 </root>
