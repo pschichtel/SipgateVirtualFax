@@ -304,6 +304,42 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Empfänger ist besetzt..
+        /// </summary>
+        public static string Status_FailedBusy {
+            get {
+                return ResourceManager.GetString("Status_FailedBusy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Empfänger ist ungültig..
+        /// </summary>
+        public static string Status_FailedInvalidDestination {
+            get {
+                return ResourceManager.GetString("Status_FailedInvalidDestination", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Empfänger hat nicht abgehoben..
+        /// </summary>
+        public static string Status_FailedNoPickup {
+            get {
+                return ResourceManager.GetString("Status_FailedNoPickup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Senden fehlgeschlagen: {0}.
+        /// </summary>
+        public static string Status_FailedWithReason {
+            get {
+                return ResourceManager.GetString("Status_FailedWithReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wartend.
         /// </summary>
         public static string Status_Pending {

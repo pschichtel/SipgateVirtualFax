@@ -116,6 +116,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                         fax.ChangeStatus(FaxStatus.SuccessfullySent);
                         break;
                     case FaxEntryStatus.Failed:
+                        fax.FailureCause = new FaxSendException(historyEntry.Status);
                         fax.ChangeStatus(FaxStatus.Failed);
                         break;
                     case FaxEntryStatus.Sending:
@@ -202,6 +203,16 @@ namespace SipgateVirtualFax.Core.Sipgate
                 default:
                     return false;
             }
+        }
+    }
+
+    public class FaxSendException : Exception
+    {
+        public EntryStatus Status { get; }
+
+        public FaxSendException(EntryStatus status) : base($"Final status of fax: {status}")
+        {
+            Status = status;
         }
     }
 }

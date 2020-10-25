@@ -1,8 +1,10 @@
 using System;
+using System.Net;
 using System.Windows;
 using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
+using static SipGateVirtualFaxGui.Properties.Resources;
 using MessageBox = System.Windows.MessageBox;
 
 namespace SipGateVirtualFaxGui
@@ -32,7 +34,7 @@ namespace SipGateVirtualFaxGui
             catch (Exception e)
             {
                 _logger.Error(e, "Failed to open a fax document!");
-                MessageBox.Show(Properties.Resources.Err_FailedToOpenDocument);
+                MessageBox.Show(Err_FailedToOpenDocument);
             }
         }
     }
@@ -53,14 +55,31 @@ namespace SipGateVirtualFaxGui
             {
                 return Fax.Status switch
                 {
-                    FaxStatus.Pending => Properties.Resources.Status_Pending,
-                    FaxStatus.Sending => Properties.Resources.Status_Sending,
-                    FaxStatus.SuccessfullySent => Properties.Resources.Status_SuccessfullySent,
-                    FaxStatus.Failed => Properties.Resources.Status_Failed,
-                    FaxStatus.Unknown => Properties.Resources.Status_Unknown,
+                    FaxStatus.Pending => Status_Pending,
+                    FaxStatus.Sending => Status_Sending,
+                    FaxStatus.SuccessfullySent => Status_SuccessfullySent,
+                    FaxStatus.Failed => FailedStatusText(Fax.FailureCause),
+                    FaxStatus.Unknown => Status_Unknown,
                     _ => "???"
                 };
             }
+        }
+
+        private static string FailedStatusText(Exception? cause)
+        {
+            if (cause != null)
+            {
+                switch (cause)
+                {
+                    case FaxSendException e when e.Status == HistoryEntry.EntryStatus.NoPickup:
+                        return string.Format(Status_FailedWithReason, Status_FailedNoPickup);
+                    case FaxSendException e when e.Status == HistoryEntry.EntryStatus.Busy:
+                        return string.Format(Status_FailedWithReason, Status_FailedBusy);
+                    case SipgateApiHttpException e when e.Status == HttpStatusCode.ProxyAuthenticationRequired:
+                        return string.Format(Status_FailedWithReason, Status_FailedInvalidDestination);
+                }
+            }
+            return Status_Failed;
         }
 
         private TrackedFax ConfigureFax(TrackedFax fax)

@@ -121,4 +121,16 @@
     <data name="Err_TwainFailedToCloseSession" xml:space="preserve">
         <value>Die Verbindung zum Scanner-Subsystem konnte nicht geschlossen werden! Möglicherweise war der Scan trotzdem erfolgreich.</value>
     </data>
+    <data name="Status_FailedWithReason" xml:space="preserve">
+        <value>Senden fehlgeschlagen: {0}</value>
+    </data>
+    <data name="Status_FailedNoPickup" xml:space="preserve">
+        <value>Empfänger hat nicht abgehoben.</value>
+    </data>
+    <data name="Status_FailedBusy" xml:space="preserve">
+        <value>Empfänger ist besetzt.</value>
+    </data>
+    <data name="Status_FailedInvalidDestination" xml:space="preserve">
+        <value>Empfänger ist ungültig.</value>
+    </data>
 </root>

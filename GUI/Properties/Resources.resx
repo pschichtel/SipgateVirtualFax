@@ -121,4 +121,16 @@
     <data name="Err_TwainUnknown" xml:space="preserve">
         <value>An unknown scanning related error occurred. Please report this to the developer!</value>
     </data>
+    <data name="Status_FailedWithReason" xml:space="preserve">
+        <value>Sending failed: {0}</value>
+    </data>
+    <data name="Status_FailedNoPickup" xml:space="preserve">
+        <value>Recipient did not pick up.</value>
+    </data>
+    <data name="Status_FailedBusy" xml:space="preserve">
+        <value>Recipient is busy.</value>
+    </data>
+    <data name="Status_FailedInvalidDestination" xml:space="preserve">
+        <value>Recipient is invalid.</value>
+    </data>
 </root>
