@@ -151,6 +151,9 @@ namespace SipgateVirtualFax.Core.Sipgate
         {
             var groupFaxlines = await GetGroupFaxLines();
 
+            // This is necessary, because sipgate apparently only allows you to use group faxlines of groups you are a
+            // member of. While e.g. admins can see all faxlines, they can't use them all.
+            // The following logic reduces the list of visible faxlines to those that can actually be used by the user.
             var groups = groupFaxlines
                 .Select(f => f.GroupId ?? "")
                 .Where(id => !string.IsNullOrEmpty(id))
