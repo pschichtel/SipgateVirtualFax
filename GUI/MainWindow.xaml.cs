@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
 using Application = System.Windows.Application;
 
 namespace SipGateVirtualFaxGui
@@ -30,6 +31,11 @@ namespace SipGateVirtualFaxGui
                 }
             }
             InitializeComponent();
+        }
+
+        private void CloseCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Hide();
         }
 
         private NotifyIcon SetupIcon(Icon icon)

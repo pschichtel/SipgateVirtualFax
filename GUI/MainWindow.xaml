@@ -10,6 +10,14 @@
         Height="450"
         Width="800"
         MinWidth="200">
+    
+        <Window.InputBindings>
+                <KeyBinding Command="ApplicationCommands.Close" Key="Escape" />
+        </Window.InputBindings>
+
+        <Window.CommandBindings>
+                <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandBinding_Executed" />
+        </Window.CommandBindings>
 
         <local:FaxList />
 </Window>
