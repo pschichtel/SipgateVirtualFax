@@ -76,7 +76,8 @@ namespace SipgateVirtualFax.CLI
                     };
                     if (options.Scanner != null)
                     {
-                        paths = await scanner.Scan((source) => source.Name.Equals(options.Scanner, StringComparison.OrdinalIgnoreCase));
+                        paths = await scanner.Scan(session => session.First(source =>
+                            source.Name.Equals(options.Scanner, StringComparison.InvariantCultureIgnoreCase)));
                     }
                     else
                     {
@@ -90,6 +91,7 @@ namespace SipgateVirtualFax.CLI
                 {
                     logger.Info($"Scan: {path}");
                 }
+
                 ImageToPdfConverter.Convert(paths, documentPath);
             }
 

@@ -79,9 +79,15 @@
             <ComboBox Grid.Row="2"
                       Grid.Column="1"
                       SelectedValue="{Binding Path=SelectedScanner}"
-                      ItemsSource="{Binding Path=Scanners}"
                       DisplayMemberPath="Name"
-                      Margin="2" />
+                      Margin="2">
+                <ComboBox.ItemsSource>
+                    <CompositeCollection>
+                        <ListBoxItem>SELECT</ListBoxItem>
+                        <CollectionContainer Collection="{Binding Path=Scanners}" />
+                    </CompositeCollection>
+                </ComboBox.ItemsSource>
+            </ComboBox>
         </Grid>
         
         <Grid Grid.Row="2"

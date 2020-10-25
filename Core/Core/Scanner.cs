@@ -31,16 +31,10 @@ namespace SipgateVirtualFax.Core
 
         public ScannerSelector[] GetScanners()
         {
-            static ScannerSelector CreateSelector(IDataSource source)
-            {
-                var id = source.Id;
-                bool Selector(IDataSource s) => s.Id.Equals(id);
-                return new ScannerSelector(source.Name, Selector);
-            }
             var session = CreateSession();
             try
             {
-                return session.GetSources().Select(CreateSelector).ToArray();
+                return session.GetSources().Select(ScannerSelector.SelectById).ToArray();
             }
             finally
             {
@@ -50,15 +44,15 @@ namespace SipgateVirtualFax.Core
 
         public Task<IList<string>> ScanWithDefault()
         {
-            return DoScan(null);
+            return DoScan(session => session.DefaultSource);
         }
 
-        public Task<IList<string>> Scan(Func<IDataSource, bool> sourceFilter)
+        public Task<IList<string>> Scan(Func<ITwainSession, IDataSource?> sourceFilter)
         {
             return DoScan(sourceFilter);
         }
 
-        private async Task<IList<string>> DoScan(Func<IDataSource, bool>? sourceFilter)
+        private async Task<IList<string>> DoScan(Func<ITwainSession, IDataSource?> sourceSelector)
         {
             var session = CreateSession();
 
@@ -68,18 +62,7 @@ namespace SipgateVirtualFax.Core
             }
             _logger.Info($"Default scanner: {session.DefaultSource.Name}");
 
-            IDataSource? source;
-            if (sourceFilter != null)
-            {
-                source = session.GetSources()
-                    .First(sourceFilter);
-            }
-            else
-            {
-                source = session.DefaultSource;
-            }
-
-
+            IDataSource? source = sourceSelector(session);
             if (source == null)
             {
                 session.Close();
