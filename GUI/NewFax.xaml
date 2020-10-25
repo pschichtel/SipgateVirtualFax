@@ -8,7 +8,8 @@
         mc:Ignorable="d"
         d:DesignHeight="300"
         d:DesignWidth="300"
-        Loaded="Window_Loaded">
+        Loaded="Window_Loaded"
+        FocusManager.FocusedElement="{Binding ElementName=FaxNumber}">
 
     <Window.DataContext>
         <local:NewFaxViewModel />
@@ -62,8 +63,7 @@
                      Grid.Column="1"
                      Name="FaxNumber"
                      Margin="2"
-                     ToolTip="{x:Static p:Resources.Toolbox_RecipientInput}"
-                     FocusManager.FocusedElement="{Binding RelativeSource={RelativeSource Self}}">
+                     ToolTip="{x:Static p:Resources.Toolbox_RecipientInput}">
                 <TextBox.Text>
                     <Binding Path="FaxNumber"
                              UpdateSourceTrigger="PropertyChanged">
