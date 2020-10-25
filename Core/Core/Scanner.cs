@@ -31,14 +31,21 @@ namespace SipgateVirtualFax.Core
 
         public ScannerSelector[] GetScanners()
         {
-            ScannerSelector CreateSelector(IDataSource source)
+            static ScannerSelector CreateSelector(IDataSource source)
             {
-                var name = source.Name;
-                bool Selector(IDataSource s) => s.Name.Equals(name);
-                return new ScannerSelector(name, Selector);
+                var id = source.Id;
+                bool Selector(IDataSource s) => s.Id.Equals(id);
+                return new ScannerSelector(source.Name, Selector);
             }
             var session = CreateSession();
-            return session.GetSources().Select(CreateSelector).ToArray();
+            try
+            {
+                return session.GetSources().Select(CreateSelector).ToArray();
+            }
+            finally
+            {
+                session.Close();
+            }
         }
 
         public Task<IList<string>> ScanWithDefault()
