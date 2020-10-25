@@ -16,6 +16,8 @@ namespace SipGateVirtualFaxGui
 {
     public partial class NewFax
     {
+        private static readonly ScannerSelector DefaultScanner =
+            new ScannerSelector(Properties.Resources.DefaultScanner, session => session.DefaultSource);
         private readonly Logger _logger = Logging.GetLogger("gui-newfax");
         private readonly Scanner _scanner;
 
@@ -36,7 +38,12 @@ namespace SipGateVirtualFaxGui
             };
             InitializeComponent();
 
-            ((NewFaxViewModel) DataContext).Scanners = _scanner.GetScanners();
+            var model = ((NewFaxViewModel) DataContext);
+            model.Scanners = _scanner.GetScanners()
+                .OrderBy(s => s.Name)
+                .Prepend(DefaultScanner)
+                .ToArray();
+            model.SelectedScanner = DefaultScanner;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

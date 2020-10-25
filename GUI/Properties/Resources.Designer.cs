@@ -79,6 +79,15 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Default Scanner.
+        /// </summary>
+        public static string DefaultScanner {
+            get {
+                return ResourceManager.GetString("DefaultScanner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to find the Sipgate credentials named &quot;{0}&quot;!.
         /// </summary>
         public static string Err_CredentialsNotFound {

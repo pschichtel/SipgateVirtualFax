@@ -97,4 +97,7 @@
     <data name="Label_Scanner" xml:space="preserve">
         <value>Scanner</value>
     </data>
+    <data name="DefaultScanner" xml:space="preserve">
+        <value>Default Scanner</value>
+    </data>
 </root>

@@ -15,7 +15,6 @@ namespace SipgateVirtualFax.Core
 {
     public class Scanner
     {
-        
         private readonly Logger _logger = Logging.GetLogger("scanner");
         private readonly TWIdentity _appId;
         public bool ShowUi { get; set; } = true;
@@ -29,7 +28,7 @@ namespace SipgateVirtualFax.Core
             PlatformInfo.Current.PreferNewDSM = false;
         }
 
-        public ScannerSelector[] GetScanners()
+        public IList<ScannerSelector> GetScanners()
         {
             var session = CreateSession();
             try
