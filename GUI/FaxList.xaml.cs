@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using NLog;
+using PhoneNumbers;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 using MessageBox = System.Windows.MessageBox;
@@ -66,8 +67,12 @@ namespace SipGateVirtualFaxGui
 
             try
             {
+                var phoneNumberUtil = PhoneNumberUtil.GetInstance();
+                PhoneNumber phoneNumber = phoneNumberUtil.Parse(newFaxModel.FaxNumber, "DE");
+                var format = phoneNumberUtil.Format(phoneNumber, PhoneNumberFormat.E164);
+
                 var fax = FaxStuff.Instance.FaxScheduler
-                    .ScheduleFax(newFaxModel.SelectedFaxline, newFaxModel.FaxNumber, newFaxModel.DocumentPath);
+                    .ScheduleFax(newFaxModel.SelectedFaxline, format, newFaxModel.DocumentPath);
 
                 var syncContext = SynchronizationContext.Current;
                 fax.StatusChanged += (scheduler, status) =>
