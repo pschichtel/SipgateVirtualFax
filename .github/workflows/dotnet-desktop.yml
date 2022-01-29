@@ -87,6 +87,9 @@ jobs:
       env:
         Configuration: ${{ matrix.configuration }}
 
+    - name: Build CLI
+      run: msbuild CLI/CLI.csproj /p:Configuration=$env:Configuration
+
     # Decode the base 64 encoded pfx and save the Signing_Certificate
     #- name: Decode the pfx
     #  run: |
