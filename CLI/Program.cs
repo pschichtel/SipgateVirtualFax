@@ -97,7 +97,8 @@ namespace SipgateVirtualFax.CLI
 
             if (options.Recipient != null)
             {
-                var faxClient = new SipgateFaxClient(options.Username ?? "", options.Password ?? "");
+                var basicAuth = new BasicAuthHeaderProvider(options.Username ?? "", options.Password ?? "");
+                var faxClient = new SipgateFaxClient(basicAuth);
 
                 var faxlines = await faxClient.GetAllUsableFaxlines();
                 if (faxlines.Length == 0)

@@ -16,7 +16,8 @@ namespace SipGateVirtualFaxGui
         public FaxStuff()
         {
             var credential = LookupCredential();
-            FaxClient = new SipgateFaxClient(credential.Username, credential.Password);
+            var basicAuth = new BasicAuthHeaderProvider(credential.Username, credential.Password);
+            FaxClient = new SipgateFaxClient(basicAuth);
             FaxScheduler = new FaxScheduler(FaxClient);
         }
         

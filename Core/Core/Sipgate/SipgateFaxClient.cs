@@ -8,27 +8,48 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
-using NTwain.Data;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
+    public interface AuthorizationHeaderProvider
+    {
+        Task<string> GetHeaderValue();
+    }
+
+    public class BasicAuthHeaderProvider : AuthorizationHeaderProvider
+    {
+        private readonly string _username;
+        private readonly string _password;
+
+        public BasicAuthHeaderProvider(string username, string password)
+        {
+            _username = username;
+            _password = password;
+        }
+
+        public Task<string> GetHeaderValue()
+        {
+            return Task.FromResult($"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_username}:{_password}"))}");
+        }
+    }
+    
     public class SipgateFaxClient
     {
+        private readonly AuthorizationHeaderProvider _authHeaderProvider;
         private const string DefaultBaseUrl = "https://api.sipgate.com/v2";
 
         private readonly Logger _logger = Logging.GetLogger("sipgate-client");
         private readonly string _baseUrl;
-        private readonly string _basicAuth;
         private readonly HttpClient _client;
 
-        public SipgateFaxClient(string username, string password) : this(DefaultBaseUrl, username, password)
+        public SipgateFaxClient(AuthorizationHeaderProvider authHeaderProvider) : this(DefaultBaseUrl, authHeaderProvider)
         {
         }
 
-        public SipgateFaxClient(string baseUrl, string username, string password)
+        public SipgateFaxClient(string baseUrl, AuthorizationHeaderProvider authHeaderProvider)
         {
             _baseUrl = baseUrl;
-            _basicAuth = $"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"))}";
+            _authHeaderProvider = authHeaderProvider;
             _client = new HttpClient();
         }
 
@@ -47,7 +68,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 RequestUri = new Uri(url),
                 Headers =
                 {
-                    {"Authorization", _basicAuth}
+                    {"Authorization", await _authHeaderProvider.GetHeaderValue()}
                 },
                 Content = content
             };
