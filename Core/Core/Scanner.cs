@@ -111,7 +111,7 @@ namespace SipgateVirtualFax.Core
             };
             
             LogState(session);
-            session.StateChanged += (s, e) => { LogState(session); };
+            session.StateChanged += (_, _) => { LogState(session); };
 
             var returnCode = loopHook == null ? session.Open() : session.Open(loopHook);
 
@@ -146,7 +146,7 @@ namespace SipgateVirtualFax.Core
             ConcurrentQueue<string> scannedFiles = new ConcurrentQueue<string>();
             Exception? error = null;
             
-            void ProcessData(object o, DataTransferredEventArgs e)
+            void ProcessData(object? o, DataTransferredEventArgs e)
             {
                 _logger.Info($"Received data from source {e.DataSource.Name}");
                 var img = GetTransferredImage(e);
@@ -191,7 +191,7 @@ namespace SipgateVirtualFax.Core
                 }
             }
 
-            void TransferReady(object sender, TransferReadyEventArgs args)
+            void TransferReady(object? sender, TransferReadyEventArgs args)
             {
                 _logger.Info($"EndOfJob={args.EndOfJob}");
                 _logger.Info($"EndOfJobFlag={args.EndOfJobFlag}");
@@ -199,17 +199,17 @@ namespace SipgateVirtualFax.Core
                 _logger.Info($"PendingImageInfo={args.PendingImageInfo}");
             }
 
-            void TransferError(object sender, TransferErrorEventArgs args)
+            void TransferError(object? sender, TransferErrorEventArgs args)
             {
                 _logger.Error(args.Exception, "TransferError");
             }
 
-            void SourceDisabled(object sender, EventArgs e)
+            void SourceDisabled(object? sender, EventArgs e)
             {
                 CompleteScan();
             }
 
-            void InitiallyEnabled(object sender, EventArgs args)
+            void InitiallyEnabled(object? sender, EventArgs args)
             {
                 if (session.StateEx == State.SourceEnabled)
                 {
@@ -219,7 +219,7 @@ namespace SipgateVirtualFax.Core
                 }
             }
 
-            async void ReturnedToEnabled(object sender, EventArgs args)
+            async void ReturnedToEnabled(object? sender, EventArgs args)
             {
                 // SourceDisabled apparently is unreliable, so we track StateChanged instead
                 if (session.StateEx == State.SourceEnabled)

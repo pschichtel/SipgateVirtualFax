@@ -54,9 +54,8 @@ namespace SipgateVirtualFax.CLI
             while (true)
             {
                 Console.WriteLine($"Open in Browser: {authorizationUri}");
-                Console.Write("Paste redirection target: ");
-                var redirectionTarget = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(redirectionTarget))
+                var redirectionTarget = ReadLine.Read("Paste redirection target: ")?.Trim();
+                if (string.IsNullOrEmpty(redirectionTarget))
                 {
                     continue;
                 }
@@ -132,7 +131,7 @@ namespace SipgateVirtualFax.CLI
                 Faxline faxline;
                 if (options.Faxline != null)
                 {
-                    var selectedFaxline = validFaxlines.First(f =>
+                    var selectedFaxline = validFaxlines.FirstOrDefault(f =>
                         f.Id == options.Faxline ||
                         f.Alias.Equals(options.Faxline, StringComparison.InvariantCultureIgnoreCase));
                     if (selectedFaxline == null)
@@ -156,7 +155,7 @@ namespace SipgateVirtualFax.CLI
                     using var scheduler = new FaxScheduler(faxClient);
                     var fax = scheduler.ScheduleFax(faxline, options.Recipient, documentPath);
                     var completionSource = new TaskCompletionSource<object?>();
-                    fax.StatusChanged += (sender, status) =>
+                    fax.StatusChanged += (_, status) =>
                     {
                         logger.Info($"Status changed: {status}");
                         if (status.IsComplete())

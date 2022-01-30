@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
-        <LangVersion>8</LangVersion>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>10</LangVersion>
         <RootNamespace>SipgateVirtualFax</RootNamespace>
         <Nullable>enable</Nullable>
         <UICulture>en-US</UICulture>
@@ -14,14 +14,10 @@
 
     <ItemGroup>
       <PackageReference Include="iTextSharp" Version="5.5.13.2" />
-      <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-      <PackageReference Include="NLog" Version="4.7.5" />
-      <PackageReference Include="NTwain" Version="3.6.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="System.Net.Http" />
-      <Reference Include="System.Web" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="NLog" Version="4.7.13" />
+      <PackageReference Include="NTwain" Version="3.7.1" />
+      <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     </ItemGroup>
 
 </Project>

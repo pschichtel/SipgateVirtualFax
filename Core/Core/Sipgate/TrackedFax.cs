@@ -78,8 +78,7 @@ namespace SipgateVirtualFax.Core.Sipgate
                 {
                     return false;
                 }
-                if (FailureCause != null && FailureCause is SipgateApiHttpException e &&
-                    e.Status == HttpStatusCode.ProxyAuthenticationRequired)
+                if (FailureCause is SipgateApiHttpException { Status: HttpStatusCode.ProxyAuthenticationRequired })
                 {
                     return false;
                 }
