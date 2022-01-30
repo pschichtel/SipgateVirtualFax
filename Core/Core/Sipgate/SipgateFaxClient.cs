@@ -11,12 +11,13 @@ using NLog;
 
 namespace SipgateVirtualFax.Core.Sipgate
 {
-    public interface AuthorizationHeaderProvider
+    public interface IAuthorizationHeaderProvider
     {
-        Task<string> GetHeaderValue();
+        bool RetryOn401 { get; }
+        Task<string> GetHeaderValue(bool retry);
     }
 
-    public class BasicAuthHeaderProvider : AuthorizationHeaderProvider
+    public class BasicAuthHeaderProvider : IAuthorizationHeaderProvider
     {
         private readonly string _username;
         private readonly string _password;
@@ -27,26 +28,38 @@ namespace SipgateVirtualFax.Core.Sipgate
             _password = password;
         }
 
-        public Task<string> GetHeaderValue()
+        public bool RetryOn401 => false;
+
+        public Task<string> GetHeaderValue(bool retry)
         {
             return Task.FromResult($"Basic {Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_username}:{_password}"))}");
+        }
+    }
+
+    public class OAuth2ImplicitFlowHeaderProvider : IAuthorizationHeaderProvider
+    {
+        public bool RetryOn401 => true;
+
+        public Task<string> GetHeaderValue(bool retry)
+        {
+            throw new NotImplementedException();
         }
     }
     
     public class SipgateFaxClient
     {
-        private readonly AuthorizationHeaderProvider _authHeaderProvider;
+        private readonly IAuthorizationHeaderProvider _authHeaderProvider;
         private const string DefaultBaseUrl = "https://api.sipgate.com/v2";
 
         private readonly Logger _logger = Logging.GetLogger("sipgate-client");
         private readonly string _baseUrl;
         private readonly HttpClient _client;
 
-        public SipgateFaxClient(AuthorizationHeaderProvider authHeaderProvider) : this(DefaultBaseUrl, authHeaderProvider)
+        public SipgateFaxClient(IAuthorizationHeaderProvider authHeaderProvider) : this(DefaultBaseUrl, authHeaderProvider)
         {
         }
 
-        public SipgateFaxClient(string baseUrl, AuthorizationHeaderProvider authHeaderProvider)
+        public SipgateFaxClient(string baseUrl, IAuthorizationHeaderProvider authHeaderProvider)
         {
             _baseUrl = baseUrl;
             _authHeaderProvider = authHeaderProvider;
@@ -55,25 +68,35 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         private async Task<HttpResponseMessage> SendBasicRequest(HttpMethod method, string path, HttpContent? content)
         {
-            if (_logger.IsTraceEnabled && content != null)
+            async Task<HttpResponseMessage> DoSendRequest(bool retry)
             {
-                var c = await content.ReadAsByteArrayAsync();
-                _logger.Trace(Encoding.UTF8.GetString(c));
-            }
-            var url = $"{_baseUrl}{path}";
-            _logger.Info($"Request: {method} {url}");
-            var message = new HttpRequestMessage
-            {
-                Method = method,
-                RequestUri = new Uri(url),
-                Headers =
+                if (_logger.IsTraceEnabled && content != null)
                 {
-                    {"Authorization", await _authHeaderProvider.GetHeaderValue()}
-                },
-                Content = content
-            };
+                    var c = await content.ReadAsByteArrayAsync();
+                    _logger.Trace(Encoding.UTF8.GetString(c));
+                }
+                var url = $"{_baseUrl}{path}";
+                _logger.Info($"Request: {method} {url}");
+                var message = new HttpRequestMessage
+                {
+                    Method = method,
+                    RequestUri = new Uri(url),
+                    Headers =
+                    {
+                        {"Authorization", await _authHeaderProvider.GetHeaderValue(retry)}
+                    },
+                    Content = content
+                };
 
-            return await _client.SendAsync(message);
+                return await _client.SendAsync(message);
+            }
+
+            var response = await DoSendRequest(false);
+            if (response.StatusCode == HttpStatusCode.Unauthorized && _authHeaderProvider.RetryOn401)
+            {
+                return await DoSendRequest(true);
+            }
+            return response;
         }
 
         private Task<HttpResponseMessage> SendRequestJson<TReq>(HttpMethod method, string path, TReq body)
