@@ -133,4 +133,13 @@
     <data name="Status_FailedInvalidDestination" xml:space="preserve">
         <value>Empfänger ist ungültig.</value>
     </data>
+    <data name="Menu_Login" xml:space="preserve">
+        <value>Anmelden</value>
+    </data>
+    <data name="Menu_Authentication" xml:space="preserve">
+        <value>Sipgate Zugang</value>
+    </data>
+    <data name="Menu_Logout" xml:space="preserve">
+        <value>Abmelden</value>
+    </data>
 </root>

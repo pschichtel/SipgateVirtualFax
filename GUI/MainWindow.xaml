@@ -10,14 +10,24 @@
         Height="450"
         Width="800"
         MinWidth="200">
-    
-        <Window.InputBindings>
-                <KeyBinding Command="ApplicationCommands.Close" Key="Escape" />
-        </Window.InputBindings>
 
-        <Window.CommandBindings>
-                <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandBinding_Executed" />
-        </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="ApplicationCommands.Close"
+                    Key="Escape" />
+    </Window.InputBindings>
 
+    <Window.CommandBindings>
+        <CommandBinding Command="ApplicationCommands.Close"
+                        Executed="CloseCommandBinding_Executed" />
+    </Window.CommandBindings>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="{x:Static p:Resources.Menu_Authentication}">
+                <MenuItem Header="{x:Static p:Resources.Menu_Login}" Click="LoginCommandBinding_Click" />
+                <MenuItem Header="{x:Static p:Resources.Menu_Logout}" Click="LogoutCommandBinding_Click" />
+            </MenuItem>
+        </Menu>
         <local:FaxList />
+    </DockPanel>
 </Window>

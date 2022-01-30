@@ -133,4 +133,13 @@
     <data name="Status_FailedInvalidDestination" xml:space="preserve">
         <value>Recipient is invalid.</value>
     </data>
+    <data name="Menu_Authentication" xml:space="preserve">
+        <value>Sipgate Account</value>
+    </data>
+    <data name="Menu_Login" xml:space="preserve">
+        <value>Login</value>
+    </data>
+    <data name="Menu_Logout" xml:space="preserve">
+        <value>Logout</value>
+    </data>
 </root>

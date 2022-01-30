@@ -268,6 +268,33 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sipgate Account.
+        /// </summary>
+        public static string Menu_Authentication {
+            get {
+                return ResourceManager.GetString("Menu_Authentication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Login.
+        /// </summary>
+        public static string Menu_Login {
+            get {
+                return ResourceManager.GetString("Menu_Login", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logout.
+        /// </summary>
+        public static string Menu_Logout {
+            get {
+                return ResourceManager.GetString("Menu_Logout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New Fax.
         /// </summary>
         public static string NewFax {
