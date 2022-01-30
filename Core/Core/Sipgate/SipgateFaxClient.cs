@@ -63,11 +63,25 @@ namespace SipgateVirtualFax.Core.Sipgate
 
     public class OAuth2ImplicitFlowHeaderProvider : IAuthorizationHeaderProvider
     {
+        public static readonly Uri DefaultAuthorizationUri = new Uri("https://login.sipgate.com/auth/realms/sipgate-apps/protocol/openid-connect/auth");
+        public static readonly Uri DefaultRedirectUri = new Uri("https://localhost:31337");
+        // Looks like a secret, but it really isn't
+        public const string DefaultClientId = "2678637-1-60b58b61-8106-11ec-9225-1fac1a8d5fca:sipgate-apps";
+        public static readonly string[] DefaultScopes =
+        {
+            "sessions:write", "sessions:fax:write", "history:read", "faxlines:read", "groups:faxlines:read",
+            "groups:read", "groups:users:read"
+        };
+
         private IOAuthImplicitFlowHandler _handler;
         private readonly Uri _authorizationUri;
         private readonly Uri _redirectUri;
         private readonly string _clientId;
         private readonly string _scope;
+
+        public OAuth2ImplicitFlowHeaderProvider(IOAuthImplicitFlowHandler handler) : this(handler, DefaultAuthorizationUri, DefaultRedirectUri, DefaultClientId, DefaultScopes)
+        {
+        }
 
         public OAuth2ImplicitFlowHeaderProvider(IOAuthImplicitFlowHandler handler, Uri authorizationUri, Uri redirectUri, string clientId, string[] scopes)
         {
