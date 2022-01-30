@@ -119,14 +119,20 @@ namespace SipgateVirtualFax.Core.Sipgate
                 Query = authorizationUriParams.ToString()
             }.Uri;
             var redirectionTarget = await _handler.Authorize(finalAuthUri);
+
+            if (_redirectUri.Host != redirectionTarget.Host)
+            {
+                throw new OAuth2ImplicitFlowException(
+                    $"Redirect Host mismatched: '{_redirectUri.Host}' vs '{redirectionTarget.Host}'");
+            }
             
             var fragment = redirectionTarget.Fragment;
-            if (fragment == null)
+            if (fragment == null || !fragment.StartsWith("#"))
             {
                 throw new OAuth2ImplicitFlowException("Redirect URI did not contain a fragment!");
             }
 
-            var redirectParams = HttpUtility.ParseQueryString(fragment);
+            var redirectParams = HttpUtility.ParseQueryString(fragment.Substring(1));
             var returnedState = redirectParams.Get("state");
             if (returnedState != state)
             {

@@ -45,6 +45,27 @@ namespace SipgateVirtualFax.CLI
         }
     }
 
+    public class CliOAuthImplicitFlowHandler : IOAuthImplicitFlowHandler
+    {
+        public Task<string?> GetAccessTokenFromStorage() => Task.FromResult<string?>(null);
+
+        public Task<Uri> Authorize(Uri authorizationUri)
+        {
+            while (true)
+            {
+                Console.WriteLine($"Open in Browser: {authorizationUri}");
+                Console.Write("Paste redirection target: ");
+                var redirectionTarget = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(redirectionTarget))
+                {
+                    continue;
+                }
+
+                return Task.FromResult(new Uri(redirectionTarget));
+            }
+        }
+    }
+
     public static class Program
     {
         public static void Main(string[] args)
@@ -97,7 +118,7 @@ namespace SipgateVirtualFax.CLI
 
             if (options.Recipient != null)
             {
-                var basicAuth = new BasicAuthHeaderProvider(options.Username ?? "", options.Password ?? "");
+                var basicAuth = new OAuth2ImplicitFlowHeaderProvider(new CliOAuthImplicitFlowHandler());
                 var faxClient = new SipgateFaxClient(basicAuth);
 
                 var faxlines = await faxClient.GetAllUsableFaxlines();
