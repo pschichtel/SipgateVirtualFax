@@ -142,8 +142,8 @@ namespace SipgateVirtualFax.Core
 
         private Task<IList<string>> EnableSourceAndCollectScans(ITwainSession session, IDataSource source)
         {
-            TaskCompletionSource<IList<string>> completionSource = new TaskCompletionSource<IList<string>>();
-            ConcurrentQueue<string> scannedFiles = new ConcurrentQueue<string>();
+            var completionSource = new TaskCompletionSource<IList<string>>();
+            var scannedFiles = new ConcurrentQueue<string>();
             Exception? error = null;
             
             void ProcessData(object? o, DataTransferredEventArgs e)
