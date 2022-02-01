@@ -4,7 +4,7 @@
         <OutputType>WinExe</OutputType>
         <UseWPF>true</UseWPF>
         <LangVersion>8</LangVersion>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFramework>net47</TargetFramework>
         <RootNamespace>SipGateVirtualFaxGui</RootNamespace>
         <Nullable>enable</Nullable>
         <Company>Phillip Schichtel</Company>
@@ -26,9 +26,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CefSharp.Wpf" Version="97.1.60" />
       <PackageReference Include="CredentialManagement" Version="1.0.2" />
-      <PackageReference Include="libphonenumber-csharp" Version="8.12.10" />
+      <PackageReference Include="libphonenumber-csharp" Version="8.12.38" />
     </ItemGroup>
 
     <ItemGroup>

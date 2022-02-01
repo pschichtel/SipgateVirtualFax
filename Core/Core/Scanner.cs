@@ -59,7 +59,11 @@ namespace SipgateVirtualFax.Core
             {
                 _logger.Info($"Available scanner: {availableSource.Name}");
             }
-            _logger.Info($"Default scanner: {session.DefaultSource.Name}");
+            var defaultSource = session.DefaultSource;
+            if (defaultSource != null)
+            {
+                _logger.Info($"Default scanner: {defaultSource.Name}");
+            }
 
             IDataSource? source = sourceSelector(session);
             if (source == null)

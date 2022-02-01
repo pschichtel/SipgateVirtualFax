@@ -91,7 +91,7 @@ namespace SipgateVirtualFax.Core.Sipgate
             _authorizationUri = authorizationUri;
             _redirectUri = redirectUri;
             _clientId = clientId;
-            _scope = string.Join(" ", scopes.Prepend("openid"));
+            _scope = "openid" + string.Join("", scopes.Select(s => " " + s));
         }
 
         public bool RetryOn401 => true;
@@ -263,7 +263,7 @@ namespace SipgateVirtualFax.Core.Sipgate
         public async Task<string> SendFax(string faxLine, string recipient, string pdfPath)
         {
             var request = new SendFaxRequest(faxLine, recipient, Path.GetFileName(pdfPath),
-                Convert.ToBase64String(await File.ReadAllBytesAsync(pdfPath)));
+                Convert.ToBase64String(File.ReadAllBytes(pdfPath)));
 
             var response =
                 await SendRequest<SendFaxRequest, SendFaxResponse>(HttpMethod.Post, "/sessions/fax",
@@ -318,11 +318,12 @@ namespace SipgateVirtualFax.Core.Sipgate
                 .Select(f => f.GroupId ?? "")
                 .Where(id => !string.IsNullOrEmpty(id))
                 .Distinct();
-            
-            var groupsOfUser = (await Task.WhenAll(groups.Select(async g => (g, await GetGroupMembers(g)))))
-                .Where(e => e.Item2.Contains(userId))
-                .Select(e => e.Item1)
-                .ToHashSet();
+
+            var groupsOfUser = new HashSet<string>(
+                (await Task.WhenAll(groups.Select(async g => (g, await GetGroupMembers(g)))))
+                    .Where(e => e.Item2.Contains(userId))
+                    .Select(e => e.Item1)
+            );
 
             return groupFaxlines.Where(f => groupsOfUser.Contains(f.GroupId ?? ""));
         }

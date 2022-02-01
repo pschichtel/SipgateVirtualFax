@@ -26,7 +26,7 @@ namespace SipGateVirtualFaxGui
 
             _expectedReturnUri = new Uri(returnUri);
 
-            WebBrowser.Address = uri.Query;
+            //WebBrowser.Address = uri.Query;
         }
 
         private void WebBrowser_OnAddressChanged(object sender, DependencyPropertyChangedEventArgs e)

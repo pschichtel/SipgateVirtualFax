@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net47</TargetFramework>
         <LangVersion>10</LangVersion>
         <RootNamespace>SipgateVirtualFax</RootNamespace>
         <Nullable>enable</Nullable>
@@ -17,7 +17,12 @@
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
       <PackageReference Include="NLog" Version="4.7.13" />
       <PackageReference Include="NTwain" Version="3.7.1" />
-      <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="System.Net" />
+      <Reference Include="System.Net.Http" />
+      <Reference Include="System.Web" />
     </ItemGroup>
 
 </Project>

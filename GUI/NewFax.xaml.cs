@@ -38,10 +38,11 @@ namespace SipGateVirtualFaxGui
             InitializeComponent();
 
             var model = ((NewFaxViewModel) DataContext);
-            model.Scanners = _scanner.GetScanners()
+            var scanners = _scanner.GetScanners()
                 .OrderBy(s => s.Name)
-                .Prepend(DefaultScanner)
-                .ToArray();
+                .ToList();
+            scanners.Insert(0, DefaultScanner);
+            model.Scanners = scanners.ToArray();
             model.SelectedScanner = DefaultScanner;
         }
 

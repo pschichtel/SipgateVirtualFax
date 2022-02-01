@@ -24,7 +24,6 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="{x:Static p:Resources.Menu_Authentication}">
-                <MenuItem Header="{x:Static p:Resources.Menu_Login}" Click="LoginCommandBinding_Click" />
                 <MenuItem Header="{x:Static p:Resources.Menu_Logout}" Click="LogoutCommandBinding_Click" />
             </MenuItem>
         </Menu>
