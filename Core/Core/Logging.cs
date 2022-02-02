@@ -16,7 +16,7 @@ namespace SipgateVirtualFax.Core
             Target[] targets = {
                 new FileTarget()
                 {
-                    FileName = "sipgate-virtual-fax.log",
+                    FileName = Util.AppPath("application.log"),
                     Layout = layout
                 },
                 new ConsoleTarget()
