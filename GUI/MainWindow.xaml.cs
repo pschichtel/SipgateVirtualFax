@@ -1,9 +1,12 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using SipgateVirtualFax.Core;
+using SipgateVirtualFax.Core.Sipgate;
 using Application = System.Windows.Application;
 
 namespace SipGateVirtualFaxGui
@@ -92,7 +95,19 @@ namespace SipGateVirtualFaxGui
 
         private void LogoutCommandBinding_Click(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            try
+            {
+                File.Delete(GuiOauthImplicitFlowHandler.AccessTokenPath());
+            }
+            catch (IOException)
+            {}
+
+            try
+            {
+                File.Delete(GuiOauthImplicitFlowHandler.CookieJarPath());
+            }
+            catch (IOException)
+            {}
         }
     }
 }

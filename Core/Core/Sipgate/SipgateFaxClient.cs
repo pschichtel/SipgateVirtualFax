@@ -102,10 +102,13 @@ namespace SipgateVirtualFax.Core.Sipgate
 
         public async Task<string> GetHeaderValue(bool retry)
         {
-            var existingToken = await _handler.GetAccessTokenFromStorage();
-            if (existingToken != null)
+            if (!retry)
             {
-                return FormatAsBearer(existingToken);
+                var existingToken = await _handler.GetAccessTokenFromStorage();
+                if (existingToken != null)
+                {
+                    return FormatAsBearer(existingToken);
+                }
             }
 
             var state = Guid.NewGuid().ToString();

@@ -106,7 +106,7 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to open the docuement!.
+        ///   Looks up a localized string similar to Failed to open the document!.
         /// </summary>
         public static string Err_FailedToOpenDocument {
             get {
@@ -120,6 +120,15 @@ namespace SipGateVirtualFaxGui.Properties {
         public static string Err_FailedToSendFax {
             get {
                 return ResourceManager.GetString("Err_FailedToSendFax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Authentication did not succeed!.
+        /// </summary>
+        public static string Err_OAuthFailed {
+            get {
+                return ResourceManager.GetString("Err_OAuthFailed", resourceCulture);
             }
         }
         
@@ -309,6 +318,15 @@ namespace SipGateVirtualFaxGui.Properties {
         public static string PdfDocuments {
             get {
                 return ResourceManager.GetString("PdfDocuments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to sipgate Authentication.
+        /// </summary>
+        public static string SipgateAuthWindow {
+            get {
+                return ResourceManager.GetString("SipgateAuthWindow", resourceCulture);
             }
         }
         

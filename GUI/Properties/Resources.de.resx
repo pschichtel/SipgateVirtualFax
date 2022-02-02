@@ -237,4 +237,10 @@
   <data name="Menu_Logout" xml:space="preserve">
     <value>Abmelden</value>
   </data>
+  <data name="Err_OAuthFailed" xml:space="preserve">
+    <value>Die Anmeldung war nicht erfolgreich!</value>
+  </data>
+  <data name="SipgateAuthWindow" xml:space="preserve">
+    <value>sipgate Anmeldung</value>
+  </data>
 </root>

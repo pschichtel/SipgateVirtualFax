@@ -166,7 +166,7 @@
     <value>Scan a document</value>
   </data>
   <data name="Err_FailedToOpenDocument" xml:space="preserve">
-    <value>Failed to open the docuement!</value>
+    <value>Failed to open the document!</value>
   </data>
   <data name="Status_Pending" xml:space="preserve">
     <value>Pending</value>
@@ -236,5 +236,11 @@
   </data>
   <data name="Menu_Logout" xml:space="preserve">
     <value>Logout</value>
+  </data>
+  <data name="Err_OAuthFailed" xml:space="preserve">
+    <value>Authentication did not succeed!</value>
+  </data>
+  <data name="SipgateAuthWindow" xml:space="preserve">
+    <value>sipgate Authentication</value>
   </data>
 </root>

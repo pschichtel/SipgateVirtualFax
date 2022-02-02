@@ -40,6 +40,12 @@ namespace SipGateVirtualFaxGui
             {
                 faxlines = await LazilyLoadFaxlines();
             }
+            catch (OAuth2ImplicitFlowException e)
+            {
+                _logger.Warn(e, "Auth failed: " + e.Message);
+                MessageBox.Show(Properties.Resources.Err_OAuthFailed);
+                return;
+            }
             catch (Exception e)
             {
                 _logger.Error(e, "Failed to load faxlines from sipgate!");

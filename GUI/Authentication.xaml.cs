@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Input;
 using CefSharp;
+using CefSharp.Wpf;
 
 namespace SipGateVirtualFaxGui
 {
@@ -16,17 +16,12 @@ namespace SipGateVirtualFaxGui
             InitializeComponent();
 
             var nameValueCollection = HttpUtility.ParseQueryString(authorizationUri.Query);
-            var returnUri = nameValueCollection.Get("redirect_uri");
-            if (returnUri == null)
-            {
-                throw new ArgumentException("URI has no return URI!", nameof(authorizationUri));
-            }
-
+            var returnUri = nameValueCollection.Get("redirect_uri")!;
             var expectedReturnUri = new Uri(returnUri);
 
             WebBrowser.Address = authorizationUri.ToString();
 
-            void TryComplete(string uriString)
+            void TryComplete(ChromiumWebBrowser browser, string uriString)
             {
                 if (uriString.StartsWith("about:"))
                 {
@@ -37,31 +32,38 @@ namespace SipGateVirtualFaxGui
                 {
                     WebBrowser.LoadError -= OnLoadErr;
                     WebBrowser.FrameLoadStart -= OnFrameLoadStart;
+                    var cookieManager = browser.GetCookieManager();
+                    var cookies = cookieManager.VisitUrlCookiesAsync(authorizationUri.ToString(), true);
                     Dispatcher.Invoke(() =>
                     {
+                        _promise.SetResult(new LoginResult(uri, cookies));
                         Close();
-                        _promise.SetResult(new LoginResult(uri, new Dictionary<string, string>()));
                     });
                 }
             }
 
             void OnFrameLoadStart(object browser, FrameLoadStartEventArgs args)
             {
-                TryComplete(args.Url);
+                TryComplete((ChromiumWebBrowser) browser, args.Url);
             }
 
             void OnLoadErr(object browser, LoadErrorEventArgs args)
             {
-                TryComplete(args.FailedUrl);
+                TryComplete((ChromiumWebBrowser) browser, args.FailedUrl);
             }
 
             WebBrowser.FrameLoadStart += OnFrameLoadStart;
             WebBrowser.LoadError += OnLoadErr;
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            _promise.TrySetResult(null);
+        }
+
         private void CloseCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            _promise.SetResult(null);
+            Close();
         }
     }
 }

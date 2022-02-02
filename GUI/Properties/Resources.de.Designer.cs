@@ -124,6 +124,15 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Die Anmeldung war nicht erfolgreich!.
+        /// </summary>
+        public static string Err_OAuthFailed {
+            get {
+                return ResourceManager.GetString("Err_OAuthFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Das Scannen ist fehlgeschlagen!.
         /// </summary>
         public static string Err_ScanningFailed {
@@ -277,15 +286,6 @@ namespace SipGateVirtualFaxGui.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Anmelden.
-        /// </summary>
-        public static string Menu_Login {
-            get {
-                return ResourceManager.GetString("Menu_Login", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Abmelden.
         /// </summary>
         public static string Menu_Logout {
@@ -318,6 +318,15 @@ namespace SipGateVirtualFaxGui.Properties {
         public static string PdfDocuments {
             get {
                 return ResourceManager.GetString("PdfDocuments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to sipgate Anmeldung.
+        /// </summary>
+        public static string SipgateAuthWindow {
+            get {
+                return ResourceManager.GetString("SipgateAuthWindow", resourceCulture);
             }
         }
         

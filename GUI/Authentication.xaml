@@ -3,14 +3,21 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:p="clr-namespace:SipGateVirtualFaxGui.Properties"
         xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         mc:Ignorable="d"
-        Title="Authentication"
+        Title="{x:Static p:Resources.SipgateAuthWindow}"
         Height="600"
         Width="400">
-    
+
+    <Window.InputBindings>
+        <KeyBinding Command="ApplicationCommands.Close"
+                    Key="Escape" />
+    </Window.InputBindings>
+
     <Window.CommandBindings>
-        <CommandBinding Command="ApplicationCommands.Close" Executed="CloseCommandBinding_Executed" />
+        <CommandBinding Command="ApplicationCommands.Close"
+                        Executed="CloseCommandBinding_Executed" />
     </Window.CommandBindings>
     
     <cefSharp:ChromiumWebBrowser x:Name="WebBrowser" />
