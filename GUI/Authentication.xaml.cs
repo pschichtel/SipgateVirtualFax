@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using System.Web;
 using System.Windows.Input;
 using CefSharp;
 using CefSharp.Wpf;
+using static SipgateVirtualFax.Core.Sipgate.OAuth2ImplicitFlowHeaderProvider;
 
 namespace SipGateVirtualFaxGui
 {
@@ -11,13 +11,10 @@ namespace SipGateVirtualFaxGui
     {
         private readonly TaskCompletionSource<LoginResult?> _promise = new TaskCompletionSource<LoginResult?>();
         public Task<LoginResult?> Result => _promise.Task;
-        public Authentication(Uri authorizationUri)
+        public Authentication(Uri authorizationUri, Uri expectedRedirectUri)
         {
             InitializeComponent();
 
-            var nameValueCollection = HttpUtility.ParseQueryString(authorizationUri.Query);
-            var returnUri = nameValueCollection.Get("redirect_uri")!;
-            var expectedReturnUri = new Uri(returnUri);
 
             WebBrowser.Address = authorizationUri.ToString();
 
@@ -28,7 +25,7 @@ namespace SipGateVirtualFaxGui
                     return;
                 }
                 var uri = new Uri(uriString);
-                if (uri.Host == expectedReturnUri.Host && uri.Fragment.Length > 1)
+                if (UriMatchesRedirectUri(uri, expectedRedirectUri) && uri.Fragment.Length > 1)
                 {
                     WebBrowser.LoadError -= OnLoadErr;
                     WebBrowser.FrameLoadStart -= OnFrameLoadStart;

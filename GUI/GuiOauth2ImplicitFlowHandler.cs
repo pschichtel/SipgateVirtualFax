@@ -6,11 +6,13 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Newtonsoft.Json;
 using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 using Cookie = CefSharp.Cookie;
+using static SipgateVirtualFax.Core.Sipgate.OAuth2ImplicitFlowHeaderProvider;
 
 namespace SipGateVirtualFaxGui
 {
@@ -85,13 +87,16 @@ namespace SipGateVirtualFaxGui
 
         async Task<Uri> IOAuthImplicitFlowHandler.Authorize(Uri authorizationUri)
         {
-            var silentResult = await AttemptSilentRefresh(authorizationUri);
+            var nameValueCollection = HttpUtility.ParseQueryString(authorizationUri.Query);
+            var expectedRedirectUri = new Uri(nameValueCollection.Get("redirect_uri")!);
+            
+            var silentResult = await AttemptSilentRefresh(authorizationUri, expectedRedirectUri);
             if (silentResult != null)
             {
                 return silentResult.Uri;
             }
             
-            var authentication = new Authentication(authorizationUri);
+            var authentication = new Authentication(authorizationUri, expectedRedirectUri);
             authentication.Show();
             authentication.Focus();
             var result = await authentication.Result;
@@ -105,7 +110,7 @@ namespace SipGateVirtualFaxGui
             return result.Uri;
         }
 
-        private async Task<LoginResult?> AttemptSilentRefresh(Uri authorizationUri)
+        private async Task<LoginResult?> AttemptSilentRefresh(Uri authorizationUri, Uri expectedRedirectUri)
         {
             var json = Util.ReadEncryptedString(CookieJarPath(), Encoding.UTF8);
             if (json == null)
@@ -132,14 +137,26 @@ namespace SipGateVirtualFaxGui
             };
             using var client = new HttpClient(handler);
 
-            var response = await client.GetAsync(authorizationUri);
-            var redirectionTarget = response.Headers.Location;
-            if (redirectionTarget == null)
+            var uri = authorizationUri;
+            while (true)
             {
-                return null;
+                var response = await client.GetAsync(uri);
+                
+                var redirectionTarget = response.Headers.Location;
+                if (redirectionTarget == null)
+                {
+                    return null;
+                }
+
+                if (UriMatchesRedirectUri(redirectionTarget, expectedRedirectUri) &&
+                    redirectionTarget.Fragment.Length > 1)
+                {
+                    return new LoginResult(redirectionTarget, Task.FromResult(new List<Cookie>()));
+                }
+
+                uri = redirectionTarget;
             }
-            
-            return new LoginResult(redirectionTarget, Task.FromResult(new List<Cookie>()));
+
         }
 
         private Task PersistCookies(List<Cookie> cookies)
