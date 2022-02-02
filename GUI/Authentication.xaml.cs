@@ -1,52 +1,67 @@
 using System;
-using System.Collections.Specialized;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Web;
-using System.Windows;
 using System.Windows.Input;
+using CefSharp;
 
 namespace SipGateVirtualFaxGui
 {
     public partial class Authentication
     {
-        private readonly Uri _expectedReturnUri;
-        private readonly Action<Uri?> _callback;
-        
-        public Authentication(Uri uri, Action<Uri?> callback)
+        private readonly TaskCompletionSource<LoginResult?> _promise = new TaskCompletionSource<LoginResult?>();
+        public Task<LoginResult?> Result => _promise.Task;
+        public Authentication(Uri authorizationUri)
         {
             InitializeComponent();
 
-            _callback = callback;
-            
-            NameValueCollection nameValueCollection = HttpUtility.ParseQueryString(uri.Query);
-            string? returnUri = nameValueCollection.Get("redirect_uri");
+            var nameValueCollection = HttpUtility.ParseQueryString(authorizationUri.Query);
+            var returnUri = nameValueCollection.Get("redirect_uri");
             if (returnUri == null)
             {
-                throw new ArgumentException("URI has no return URI!", nameof(uri));
+                throw new ArgumentException("URI has no return URI!", nameof(authorizationUri));
             }
 
-            _expectedReturnUri = new Uri(returnUri);
+            var expectedReturnUri = new Uri(returnUri);
 
-            //WebBrowser.Address = uri.Query;
-        }
+            WebBrowser.Address = authorizationUri.ToString();
 
-        private void WebBrowser_OnAddressChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            NameValueCollection nameValueCollection = HttpUtility.ParseQueryString(e.NewValue.ToString());
-            string? returnUri = nameValueCollection.Get("redirect_uri");
-            var uri = new Uri(returnUri);
-            if (uri.Host != _expectedReturnUri.Host)
+            void TryComplete(string uriString)
             {
-                return;
+                if (uriString.StartsWith("about:"))
+                {
+                    return;
+                }
+                var uri = new Uri(uriString);
+                if (uri.Host == expectedReturnUri.Host && uri.Fragment.Length > 1)
+                {
+                    WebBrowser.LoadError -= OnLoadErr;
+                    WebBrowser.FrameLoadStart -= OnFrameLoadStart;
+                    Dispatcher.Invoke(() =>
+                    {
+                        Close();
+                        _promise.SetResult(new LoginResult(uri, new Dictionary<string, string>()));
+                    });
+                }
             }
 
-            WindowCollection windows = Application.Current.Windows;
-            windows[1]?.Close();
-            _callback(uri);
+            void OnFrameLoadStart(object browser, FrameLoadStartEventArgs args)
+            {
+                TryComplete(args.Url);
+            }
+
+            void OnLoadErr(object browser, LoadErrorEventArgs args)
+            {
+                TryComplete(args.FailedUrl);
+            }
+
+            WebBrowser.FrameLoadStart += OnFrameLoadStart;
+            WebBrowser.LoadError += OnLoadErr;
         }
 
         private void CloseCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            _callback(null);
+            _promise.SetResult(null);
         }
     }
 }

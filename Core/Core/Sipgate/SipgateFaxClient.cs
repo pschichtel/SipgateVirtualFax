@@ -52,6 +52,8 @@ namespace SipgateVirtualFax.Core.Sipgate
         /// <param name="authorizationUri">complete authorization URI</param>
         /// <returns>the redirection target</returns>
         Task<Uri> Authorize(Uri authorizationUri);
+
+        Task StoreAccessToken(string accessToken);
     }
 
     public class OAuth2ImplicitFlowException : Exception
@@ -155,6 +157,8 @@ namespace SipgateVirtualFax.Core.Sipgate
             {
                 throw new OAuth2ImplicitFlowException("No error, but also not access_token received!");
             }
+
+            await _handler.StoreAccessToken(accessToken);
                 
             return FormatAsBearer(accessToken);
         }

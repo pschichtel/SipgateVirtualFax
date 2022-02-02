@@ -1,36 +1,18 @@
-using System;
-using System.Windows;
-using CredentialManagement;
 using SipgateVirtualFax.Core.Sipgate;
 
 namespace SipGateVirtualFaxGui
 {
     public class FaxStuff
     {
-        public const string CredentialName = "sipgate-fax"; 
         public static readonly FaxStuff Instance = new FaxStuff();
         
-        public SipgateFaxClient FaxClient { get; private set; }
-        public FaxScheduler FaxScheduler { get; private set; }
+        public SipgateFaxClient FaxClient { get; }
+        public FaxScheduler FaxScheduler { get; }
 
         public FaxStuff()
         {
-            var credential = LookupCredential();
-            var basicAuth = new BasicAuthHeaderProvider(credential.Username, credential.Password);
-            FaxClient = new SipgateFaxClient(basicAuth);
+            FaxClient = new SipgateFaxClient(new OAuth2ImplicitFlowHeaderProvider(new GuiOauthImplicitFlowHandler()));
             FaxScheduler = new FaxScheduler(FaxClient);
-        }
-        
-        private static Credential LookupCredential()
-        {
-            var credential = new Credential { Target = CredentialName };
-            if (!credential.Load())
-            {
-                MessageBox.Show(string.Format(Properties.Resources.Err_CredentialsNotFound, CredentialName));
-                throw new Exception("Missing credential!");
-            }
-
-            return credential;
         }
     }
 }

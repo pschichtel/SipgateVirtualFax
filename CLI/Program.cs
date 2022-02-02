@@ -63,6 +63,8 @@ namespace SipgateVirtualFax.CLI
                 return Task.FromResult(new Uri(redirectionTarget));
             }
         }
+
+        public Task StoreAccessToken(string accessToken) => Task.CompletedTask;
     }
 
     public static class Program
