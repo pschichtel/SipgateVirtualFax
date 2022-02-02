@@ -25,7 +25,7 @@ namespace SipGateVirtualFaxGui
                     return;
                 }
                 var uri = new Uri(uriString);
-                if (UriMatchesRedirectUri(uri, expectedRedirectUri) && uri.Fragment.Length > 1)
+                if (IsValidRedirectionTarget(uri, expectedRedirectUri))
                 {
                     WebBrowser.LoadError -= OnLoadErr;
                     WebBrowser.FrameLoadStart -= OnFrameLoadStart;

@@ -110,7 +110,7 @@ namespace SipGateVirtualFaxGui
             return result.Uri;
         }
 
-        private async Task<LoginResult?> AttemptSilentRefresh(Uri authorizationUri, Uri expectedRedirectUri)
+        private static async Task<LoginResult?> AttemptSilentRefresh(Uri authorizationUri, Uri expectedRedirectUri)
         {
             var json = Util.ReadEncryptedString(CookieJarPath(), Encoding.UTF8);
             if (json == null)
@@ -148,8 +148,7 @@ namespace SipGateVirtualFaxGui
                     return null;
                 }
 
-                if (UriMatchesRedirectUri(redirectionTarget, expectedRedirectUri) &&
-                    redirectionTarget.Fragment.Length > 1)
+                if (IsValidRedirectionTarget(redirectionTarget, expectedRedirectUri))
                 {
                     return new LoginResult(redirectionTarget, Task.FromResult(new List<Cookie>()));
                 }

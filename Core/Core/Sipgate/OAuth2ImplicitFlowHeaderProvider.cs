@@ -140,4 +140,7 @@ public class OAuth2ImplicitFlowHeaderProvider : IAuthorizationHeaderProvider
 
         return true;
     }
+
+    public static bool IsValidRedirectionTarget(Uri uri, Uri expectedRedirectUri) =>
+        UriMatchesRedirectUri(uri, expectedRedirectUri) && uri.Fragment.Length > 1;
 }
