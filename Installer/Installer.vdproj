@@ -19,6 +19,12 @@
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
+        "Entry"
+        {
+        "MsmKey" = "8:_A96EFF4CEE3E4CC3B2F742CB01A2D7C3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
     }
     "Configurations"
     {
@@ -37,6 +43,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
         "Release"
         {
@@ -53,6 +75,22 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.7.2"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.7.2 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.7.2"
+                    }
+                }
+            }
         }
     }
     "Deployable"
@@ -151,7 +189,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:sipgate Virtual Fax"
         "ProductCode" = "8:{B581669C-FD93-460A-9154-2AA9839C89AE}"
-        "PackageCode" = "8:{F893CC9A-F2BA-4A53-9F6F-3CC16F4CC31E}"
+        "PackageCode" = "8:{1FB6EF5B-7220-4D5B-B38B-B8B4CAF1BECF}"
         "UpgradeCode" = "8:{487C6B91-DC08-4254-A798-989F07526DCD}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
@@ -271,7 +309,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_9547835D9F704337B17CB7E434772CB7"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_3A3C6EF549BE4E79BEDB2471DE91DBE7"
             {
             "Name" = "8:sipgate Virtual Fax"
             "Arguments" = "8:"
@@ -279,8 +317,22 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_A902EEDF7E294A768315CD86096787B5"
+            "Target" = "8:_A96EFF4CEE3E4CC3B2F742CB01A2D7C3"
             "Folder" = "8:_BBF6798E28A34C14BD6F984694EBB7D0"
+            "WorkingFolder" = "8:_A902EEDF7E294A768315CD86096787B5"
+            "Icon" = "8:_9951BB4646904CA5B1CF972627919313"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_F7A2146F4D5849E881165B886DA5FF39"
+            {
+            "Name" = "8:sipgate Virtual Fax"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_A96EFF4CEE3E4CC3B2F742CB01A2D7C3"
+            "Folder" = "8:_568EFD27E0F9468E971440BA8D585EE1"
             "WorkingFolder" = "8:_A902EEDF7E294A768315CD86096787B5"
             "Icon" = "8:_9951BB4646904CA5B1CF972627919313"
             "Feature" = "8:"
@@ -706,6 +758,36 @@
             "ProjectOutputGroupRegister" = "3:1"
             "OutputConfiguration" = "8:"
             "OutputGroupCanonicalName" = "8:PublishItems"
+            "OutputProjectGuid" = "8:{31E36FCF-397A-424F-A961-1B04E76A566E}"
+            "ShowKeyOutput" = "11:TRUE"
+                "ExcludeFilters"
+                {
+                "ExcludeFilter" = "8:*.pdb"
+                "ExcludeFilter" = "8:GUI.exe"
+                }
+            }
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A96EFF4CEE3E4CC3B2F742CB01A2D7C3"
+            {
+            "SourcePath" = "8:..\\GUI\\obj\\Release\\net47\\GUI.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_A902EEDF7E294A768315CD86096787B5"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            "ProjectOutputGroupRegister" = "3:1"
+            "OutputConfiguration" = "8:"
+            "OutputGroupCanonicalName" = "8:Built"
             "OutputProjectGuid" = "8:{31E36FCF-397A-424F-A961-1B04E76A566E}"
             "ShowKeyOutput" = "11:TRUE"
                 "ExcludeFilters"
