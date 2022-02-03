@@ -2,23 +2,22 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace SipGateVirtualFaxGui
+namespace SipGateVirtualFaxGui;
+
+public class BoolInverter : IValueConverter
 {
-    public class BoolInverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is bool b)
         {
-            if (value is bool b)
-            {
-                return !b;
-            }
-
-            return false;
+            return !b;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return Convert(value, targetType, parameter, culture);
-        }
+        return false;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return Convert(value, targetType, parameter, culture);
     }
 }

@@ -11,179 +11,178 @@ using NLog;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 
-namespace SipGateVirtualFaxGui
+namespace SipGateVirtualFaxGui;
+
+public partial class NewFax
 {
-    public partial class NewFax
+    private static readonly ScannerSelector DefaultScanner =
+        new ScannerSelector(Properties.Resources.DefaultScanner, session => session.DefaultSource);
+    private readonly Logger _logger = Logging.GetLogger("gui-new-fax");
+    private readonly Scanner _scanner;
+
+    public NewFax()
     {
-        private static readonly ScannerSelector DefaultScanner =
-            new ScannerSelector(Properties.Resources.DefaultScanner, session => session.DefaultSource);
-        private readonly Logger _logger = Logging.GetLogger("gui-newfax");
-        private readonly Scanner _scanner;
-
-        public NewFax()
+        var window = GetWindow(this);
+        IntPtr handle = IntPtr.Zero;
+        if (window != null)
         {
-            var window = GetWindow(this);
-            IntPtr handle = IntPtr.Zero;
-            if (window != null)
-            {
-                handle = new WindowInteropHelper(window).Handle;
-            }
-
-            _scanner = new Scanner()
-            {
-                ShowUi = true,
-                ParentWindow = handle,
-                ScanBasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-            };
-            InitializeComponent();
-
-            var model = ((NewFaxViewModel) DataContext);
-            var scanners = _scanner.GetScanners()
-                .OrderBy(s => s.Name)
-                .ToList();
-            scanners.Insert(0, DefaultScanner);
-            model.Scanners = scanners.ToArray();
-            model.SelectedScanner = DefaultScanner;
+            handle = new WindowInteropHelper(window).Handle;
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        _scanner = new Scanner()
         {
-            // we manually fire the bindings so we get the validation initially
-            FaxNumber.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-        }
+            ShowUi = true,
+            ParentWindow = handle,
+            ScanBasePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+        };
+        InitializeComponent();
 
-        private void CloseCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            Close();
-        }
+        var model = ((NewFaxViewModel) DataContext);
+        var scanners = _scanner.GetScanners()
+            .OrderBy(s => s.Name)
+            .ToList();
+        scanners.Insert(0, DefaultScanner);
+        model.Scanners = scanners.ToArray();
+        model.SelectedScanner = DefaultScanner;
+    }
 
-        private async void ScanDocumentAndSend(object sender, RoutedEventArgs e)
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        // we manually fire the bindings so we get the validation initially
+        FaxNumber.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+    }
+
+    private void CloseCommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private async void ScanDocumentAndSend(object sender, RoutedEventArgs e)
+    {
+        var vm = (NewFaxViewModel) DataContext;
+        try
         {
-            var vm = (NewFaxViewModel) DataContext;
-            try
+            IList<string> paths;
+            if (vm.SelectedScanner == null)
             {
-                IList<string> paths;
-                if (vm.SelectedScanner == null)
-                {
-                    _logger.Info("Scanning with default scanner...");
-                    paths = await _scanner.ScanWithDefault();
-                }
-                else
-                {
-                    _logger.Info($"Trying to scan with device '{vm.SelectedScanner.Name}'");
-                    paths = await _scanner.Scan(vm.SelectedScanner.Selector);
-                }
-
-                if (paths.Count > 0)
-                {
-                    var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
-                    ImageToPdfConverter.Convert(paths, pdfPath);
-                    vm.DocumentPath = pdfPath;
-                    Close();
-                }
-                else
-                {
-                    MessageBox.Show(this, Properties.Resources.NoDocumentScanned);
-                }
+                _logger.Info("Scanning with default scanner...");
+                paths = await _scanner.ScanWithDefault();
             }
-            catch (ScanningException ex)
+            else
             {
-                var message = ex.Error switch
-                {
-                    ScanningError.FailedToCreateSession => Properties.Resources.Err_TwainFailedToCreateSession,
-                    ScanningError.Unknown => Properties.Resources.Err_TwainUnknown,
-                    ScanningError.FailedToReadScannedImage => Properties.Resources.Err_TwainFailedToReadScannedImage,
-                    ScanningError.FailedToEnableSource => Properties.Resources.Err_TwainFailedToEnableSource,
-                    ScanningError.FailedToCloseSource => Properties.Resources.Err_TwainFailedToCloseSource,
-                    ScanningError.FailedToCloseSession => Properties.Resources.Err_TwainFailedToCloseSession,
-                    ScanningError.FailedToOpenSource => Properties.Resources.Err_TwainFailedToOpenSource,
-                    _ => Properties.Resources.Err_TwainUnknown
-                };
-                MessageBox.Show(message);
+                _logger.Info($"Trying to scan with device '{vm.SelectedScanner.Name}'");
+                paths = await _scanner.Scan(vm.SelectedScanner.Selector);
             }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Scanning failed for a reason unrelated to scanning.");
-                MessageBox.Show(this, Properties.Resources.Err_ScanningFailed);
-            }
-        }
 
-        private void SelectPdfAndSend(object sender, RoutedEventArgs e)
-        {
-            var openFileDialog = new OpenFileDialog
+            if (paths.Count > 0)
             {
-                Filter = $"{Properties.Resources.PdfDocuments} (*.pdf)|*.pdf"
-            };
-            if (openFileDialog.ShowDialog() ?? false)
-            {
-                ((NewFaxViewModel) DataContext).DocumentPath = openFileDialog.FileName;
+                var pdfPath = Path.ChangeExtension(paths.First(), "pdf");
+                ImageToPdfConverter.Convert(paths, pdfPath);
+                vm.DocumentPath = pdfPath;
                 Close();
             }
+            else
+            {
+                MessageBox.Show(this, Properties.Resources.NoDocumentScanned);
+            }
+        }
+        catch (ScanningException ex)
+        {
+            var message = ex.Error switch
+            {
+                ScanningError.FailedToCreateSession => Properties.Resources.Err_TwainFailedToCreateSession,
+                ScanningError.Unknown => Properties.Resources.Err_TwainUnknown,
+                ScanningError.FailedToReadScannedImage => Properties.Resources.Err_TwainFailedToReadScannedImage,
+                ScanningError.FailedToEnableSource => Properties.Resources.Err_TwainFailedToEnableSource,
+                ScanningError.FailedToCloseSource => Properties.Resources.Err_TwainFailedToCloseSource,
+                ScanningError.FailedToCloseSession => Properties.Resources.Err_TwainFailedToCloseSession,
+                ScanningError.FailedToOpenSource => Properties.Resources.Err_TwainFailedToOpenSource,
+                _ => Properties.Resources.Err_TwainUnknown
+            };
+            MessageBox.Show(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Scanning failed for a reason unrelated to scanning.");
+            MessageBox.Show(this, Properties.Resources.Err_ScanningFailed);
         }
     }
 
-    public class NewFaxViewModel : BaseViewModel
+    private void SelectPdfAndSend(object sender, RoutedEventArgs e)
     {
-        private Faxline[] _faxlines = new Faxline[0];
-        private ScannerSelector[] _scanners = new ScannerSelector[0];
-        private Faxline? _selectedFaxline;
-        private string _faxNumber = "";
-        private ScannerSelector? _selectedScanner;
-
-        public Faxline[] Faxlines
+        var openFileDialog = new OpenFileDialog
         {
-            get => _faxlines;
-            set
-            {
-                _faxlines = value;
-                OnPropertyChanged(nameof(Faxlines));
-                if (!_faxlines.Contains(SelectedFaxline))
-                {
-                    SelectedFaxline = _faxlines.Length > 0 ? _faxlines[0] : null;
-                }
-            }
-        }
-
-        public ScannerSelector[] Scanners
+            Filter = $"{Properties.Resources.PdfDocuments} (*.pdf)|*.pdf"
+        };
+        if (openFileDialog.ShowDialog() ?? false)
         {
-            get => _scanners;
-            set
-            {
-                _scanners = value;
-                OnPropertyChanged(nameof(Scanners));
-            }
+            ((NewFaxViewModel) DataContext).DocumentPath = openFileDialog.FileName;
+            Close();
         }
-
-        public Faxline? SelectedFaxline
-        {
-            get => _selectedFaxline;
-            set
-            {
-                _selectedFaxline = value;
-                OnPropertyChanged(nameof(SelectedFaxline));
-            }
-        }
-
-        public string FaxNumber
-        {
-            get => _faxNumber;
-            set
-            {
-                _faxNumber = value;
-                OnPropertyChanged(nameof(FaxNumber));
-            }
-        }
-
-        public ScannerSelector? SelectedScanner
-        {
-            get => _selectedScanner;
-            set
-            {
-                _selectedScanner = value;
-                OnPropertyChanged(nameof(SelectedScanner));
-            }
-        }
-
-        public string? DocumentPath { get; internal set; }
     }
+}
+
+public class NewFaxViewModel : BaseViewModel
+{
+    private Faxline[] _faxlines = Array.Empty<Faxline>();
+    private ScannerSelector[] _scanners = Array.Empty<ScannerSelector>();
+    private Faxline? _selectedFaxline;
+    private string _faxNumber = "";
+    private ScannerSelector? _selectedScanner;
+
+    public Faxline[] Faxlines
+    {
+        get => _faxlines;
+        set
+        {
+            _faxlines = value;
+            OnPropertyChanged(nameof(Faxlines));
+            if (!_faxlines.Contains(SelectedFaxline))
+            {
+                SelectedFaxline = _faxlines.Length > 0 ? _faxlines[0] : null;
+            }
+        }
+    }
+
+    public ScannerSelector[] Scanners
+    {
+        get => _scanners;
+        set
+        {
+            _scanners = value;
+            OnPropertyChanged(nameof(Scanners));
+        }
+    }
+
+    public Faxline? SelectedFaxline
+    {
+        get => _selectedFaxline;
+        set
+        {
+            _selectedFaxline = value;
+            OnPropertyChanged(nameof(SelectedFaxline));
+        }
+    }
+
+    public string FaxNumber
+    {
+        get => _faxNumber;
+        set
+        {
+            _faxNumber = value;
+            OnPropertyChanged(nameof(FaxNumber));
+        }
+    }
+
+    public ScannerSelector? SelectedScanner
+    {
+        get => _selectedScanner;
+        set
+        {
+            _selectedScanner = value;
+            OnPropertyChanged(nameof(SelectedScanner));
+        }
+    }
+
+    public string? DocumentPath { get; internal set; }
 }

@@ -1,95 +1,94 @@
 using System;
 using System.Net;
 
-namespace SipgateVirtualFax.Core.Sipgate
+namespace SipgateVirtualFax.Core.Sipgate;
+
+public class TrackedFax
 {
-    public class TrackedFax
+    public Faxline Faxline { get; }
+    public string Recipient { get; }
+    public string DocumentPath { get; }
+    public FaxStatus Status { get; private set; }
+    public Exception? FailureCause { get; protected internal set; }
+    public DateTime ScheduleTime { get; } = DateTime.Now;
+    public DateTime? SendTime { get; private set; }
+    public DateTime? CompleteTime { get; private set; }
+
+    public delegate void StatusChangedHandler(TrackedFax sender, FaxStatus newStatus);
+
+    public event StatusChangedHandler? StatusChanged;
+
+    protected internal string? Id { get; set; }
+    private readonly Func<TrackedFax, TrackedFax> _resendCallback;
+
+    public TrackedFax(Faxline faxline, string recipient, string documentPath,
+        Func<TrackedFax, TrackedFax> resendCallback)
     {
-        public Faxline Faxline { get; }
-        public string Recipient { get; }
-        public string DocumentPath { get; }
-        public FaxStatus Status { get; private set; }
-        public Exception? FailureCause { get; protected internal set; }
-        public DateTime ScheduleTime { get; } = DateTime.Now;
-        public DateTime? SendTime { get; private set; }
-        public DateTime? CompleteTime { get; private set; }
+        _resendCallback = resendCallback;
+        Faxline = faxline;
+        Recipient = recipient;
+        DocumentPath = documentPath;
+        Status = FaxStatus.Pending;
 
-        public delegate void StatusChangedHandler(TrackedFax sender, FaxStatus newStatus);
+        Id = null;
+    }
 
-        public event StatusChangedHandler? StatusChanged;
-
-        protected internal string? Id { get; set; }
-        private readonly Func<TrackedFax, TrackedFax> _resendCallback;
-
-        public TrackedFax(Faxline faxline, string recipient, string documentPath,
-            Func<TrackedFax, TrackedFax> resendCallback)
+    public void ChangeStatus(FaxStatus newStatus)
+    {
+        if (newStatus != Status)
         {
-            _resendCallback = resendCallback;
-            Faxline = faxline;
-            Recipient = recipient;
-            DocumentPath = documentPath;
-            Status = FaxStatus.Pending;
+            var oldStatus = Status;
+            Status = newStatus;
 
-            Id = null;
-        }
-
-        public void ChangeStatus(FaxStatus newStatus)
-        {
-            if (newStatus != Status)
+            if (newStatus == FaxStatus.Pending)
             {
-                var oldStatus = Status;
-                Status = newStatus;
-
-                if (newStatus == FaxStatus.Pending)
-                {
-                    SendTime = null;
-                    CompleteTime = null;
-                }
-
-                if (oldStatus == FaxStatus.Pending && newStatus == FaxStatus.Sending)
-                {
-                    SendTime = DateTime.Now;
-                }
-
-                if (newStatus.IsComplete())
-                {
-                    CompleteTime = DateTime.Now;
-                }
-
-                StatusChanged?.Invoke(this, newStatus);
+                SendTime = null;
+                CompleteTime = null;
             }
-        }
 
-        public TrackedFax Resend()
-        {
-            return _resendCallback(this);
-        }
-
-        public bool MayResend
-        {
-            get
+            if (oldStatus == FaxStatus.Pending && newStatus == FaxStatus.Sending)
             {
-                if (!Status.IsComplete())
-                {
-                    return false;
-                }
-
-                if (!Status.CanResend())
-                {
-                    return false;
-                }
-                if (FailureCause is SipgateApiHttpException { Status: HttpStatusCode.ProxyAuthenticationRequired })
-                {
-                    return false;
-                }
-                return true;
+                SendTime = DateTime.Now;
             }
-        }
 
-        public override string ToString()
-        {
-            return
-                $"{nameof(Faxline)}: {Faxline}, {nameof(Recipient)}: {Recipient}, {nameof(DocumentPath)}: {DocumentPath}, {nameof(Id)}: {Id}, {nameof(Status)}: {Status}, {nameof(FailureCause)}: {FailureCause}";
+            if (newStatus.IsComplete())
+            {
+                CompleteTime = DateTime.Now;
+            }
+
+            StatusChanged?.Invoke(this, newStatus);
         }
+    }
+
+    public TrackedFax Resend()
+    {
+        return _resendCallback(this);
+    }
+
+    public bool MayResend
+    {
+        get
+        {
+            if (!Status.IsComplete())
+            {
+                return false;
+            }
+
+            if (!Status.CanResend())
+            {
+                return false;
+            }
+            if (FailureCause is SipgateApiHttpException { Status: HttpStatusCode.ProxyAuthenticationRequired })
+            {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    public override string ToString()
+    {
+        return
+            $"{nameof(Faxline)}: {Faxline}, {nameof(Recipient)}: {Recipient}, {nameof(DocumentPath)}: {DocumentPath}, {nameof(Id)}: {Id}, {nameof(Status)}: {Status}, {nameof(FailureCause)}: {FailureCause}";
     }
 }
