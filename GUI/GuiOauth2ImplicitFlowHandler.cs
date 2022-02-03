@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -68,7 +69,7 @@ public class CookieJar
     }
 }
 
-class GuiOauthImplicitFlowHandler : IOAuthImplicitFlowHandler
+internal class GuiOauthImplicitFlowHandler : IOAuthImplicitFlowHandler
 {
     private readonly Logger _logger = Logging.GetLogger("gui-oauth-handler");
 
@@ -159,22 +160,16 @@ class GuiOauthImplicitFlowHandler : IOAuthImplicitFlowHandler
 
     }
 
-    private Task PersistCookies(List<Cookie> cookies)
+    private static Task PersistCookies(IEnumerable<Cookie> cookies)
     {
-        List<SimpleCookie> simpleCookies = new List<SimpleCookie>(cookies.Count);
-        foreach (var cookie in cookies)
-        {
-            simpleCookies.Add(new SimpleCookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain));
-        }
-
-        var cookieJar = new CookieJar(simpleCookies.ToArray());
+        var cookieJar = new CookieJar(cookies.Select(c => new SimpleCookie(c.Name, c.Value, c.Path, c.Domain)).ToArray());
         return WriteStringEncrypted(CookieJarPath(), JsonConvert.SerializeObject(cookieJar), Encoding.UTF8);
     }
 
     public static string AccessTokenPath() => Util.AppPath("access-token.secret");
     public static string CookieJarPath() => Util.AppPath("cookie-jar.secret");
 
-    private Task WriteStringEncrypted(string path, string content, Encoding encoding)
+    private static Task WriteStringEncrypted(string path, string content, Encoding encoding)
     {
         var data = encoding.GetBytes(content);
         var encrypted = ProtectedData.Protect(data, null, DataProtectionScope.CurrentUser);
