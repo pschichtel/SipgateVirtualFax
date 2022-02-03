@@ -2,5 +2,7 @@ bin/
 obj/
 .idea/
 .vs/
+Installer/*
+!Installer/Installer.vdproj
 *.iml
 *.DotSettings.user
