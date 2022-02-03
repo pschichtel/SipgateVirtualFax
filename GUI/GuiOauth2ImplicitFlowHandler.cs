@@ -100,6 +100,7 @@ namespace SipGateVirtualFaxGui
             authentication.Show();
             authentication.Focus();
             var result = await authentication.Result;
+            authentication.Close();
             if (result == null)
             {
                 throw new OAuth2ImplicitFlowException("Authentication did not yield a result!");
