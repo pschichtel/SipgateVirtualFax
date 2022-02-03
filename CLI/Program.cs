@@ -8,7 +8,7 @@ using CommandLine;
 using SipgateVirtualFax.Core;
 using SipgateVirtualFax.Core.Sipgate;
 
-namespace SipgateVirtualFax.CLI;
+namespace SipGateVirtualFaxCli;
 
 public class Options
 {

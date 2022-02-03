@@ -5,6 +5,7 @@
         <TargetFramework>net47</TargetFramework>
         <LangVersion>10</LangVersion>
         <Nullable>enable</Nullable>
+        <RootNamespace>SipGateVirtualFaxCli</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
