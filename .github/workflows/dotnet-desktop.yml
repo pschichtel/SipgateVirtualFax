@@ -86,7 +86,7 @@ jobs:
       run: msbuild CLI/CLI.csproj /p:Configuration=$env:Configuration
 
     - name: Build Installer
-      run: msbuild Installer/Installer.vdproj /p:Configuration=$env:Configuration
+      run: devenv SetupProjectTestApp.sln /build $env:Configuration /project Installer/Installer.vdproj /projectconfig $env:Configuration
 
     # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
     #- name: Upload build artifacts
