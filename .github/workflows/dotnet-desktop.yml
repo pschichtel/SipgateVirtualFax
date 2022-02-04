@@ -88,7 +88,8 @@ jobs:
         Configuration: ${{ matrix.configuration }}
 
     - name: Build Installer
-      run: '"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.com" $env:Solution_Name /build $env:Configuration /project Installer/Installer.vdproj'
+      run: |
+        "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.com" $env:Solution_Name /build $env:Configuration /project Installer/Installer.vdproj
       env:
         Configuration: ${{ matrix.configuration }}
 
