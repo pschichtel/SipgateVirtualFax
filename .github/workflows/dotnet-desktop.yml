@@ -89,7 +89,7 @@ jobs:
 
     - name: Build Installer
       run: |
-        "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.com" $env:Solution_Name /build $env:Configuration /project Installer/Installer.vdproj
+        Start-Process -Wait -NoNewWindow -FilePath "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.com" -ArgumentList $env:Solution_Name, "/build", $env:Configuration, "Installer/Installer.vdproj" -WorkingDirectory .
       env:
         Configuration: ${{ matrix.configuration }}
 
