@@ -11,10 +11,10 @@ What works?
 - Fax existing PDF without scanning
 - Offering resend upon send failure
 - Progress indication in the UI
+- Sipgate OAuth2 and access token authentication 
 
 What's still missing?
 
 - multi page scanning using ADF
 - multi page scanning using manual swap with UI guidance
 - Contact book integration
-- Sipgate oauth2 login
