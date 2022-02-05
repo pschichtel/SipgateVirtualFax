@@ -52,7 +52,7 @@ jobs:
       matrix:
         configuration: [Debug, Release]
 
-    runs-on: windows-2022
+    runs-on: windows-2019
 
     env:
       Solution_Name: SipgateVirtualFax.sln                         # Replace with your solution name, i.e. MyWpfApp.sln.
@@ -89,7 +89,7 @@ jobs:
 
     - name: Build Installer
       run: |
-        Start-Process -Wait -NoNewWindow -FilePath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.com" -ArgumentList $env:Solution_Name, "/build", $env:Configuration, "Installer/Installer.vdproj" -WorkingDirectory .
+        Start-Process -Wait -NoNewWindow -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\devenv.com" -ArgumentList $env:Solution_Name, "/build", $env:Configuration, "Installer/Installer.vdproj" -WorkingDirectory .
       env:
         Configuration: ${{ matrix.configuration }}
 
