@@ -45,28 +45,6 @@ public class Options
     }
 }
 
-public class CliOAuthImplicitFlowHandler : IOAuthImplicitFlowHandler
-{
-    public Task<string?> GetAccessTokenFromStorage() => Task.FromResult<string?>(null);
-
-    public Task<Uri> Authorize(Uri authorizationUri)
-    {
-        while (true)
-        {
-            Console.WriteLine($"Open in Browser: {authorizationUri}");
-            var redirectionTarget = ReadLine.Read("Paste redirection target: ")?.Trim();
-            if (string.IsNullOrEmpty(redirectionTarget))
-            {
-                continue;
-            }
-
-            return Task.FromResult(new Uri(redirectionTarget));
-        }
-    }
-
-    public Task StoreAccessToken(string accessToken) => Task.CompletedTask;
-}
-
 public static class Program
 {
     public static void Main(string[] args)
@@ -119,8 +97,9 @@ public static class Program
 
         if (options.Recipient != null)
         {
-            var basicAuth = new OAuth2ImplicitFlowHeaderProvider(new CliOAuthImplicitFlowHandler());
-            var faxClient = new SipgateFaxClient(basicAuth);
+            var name = ReadLine.Read("Token-Name: ");
+            var token = ReadLine.ReadPassword("Token: ");
+            var faxClient = new SipgateFaxClient(new BasicAuthHeaderProvider(name, token));
 
             var faxlines = await faxClient.GetAllUsableFaxlines();
             if (faxlines.Length == 0)

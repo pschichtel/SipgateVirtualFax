@@ -9,9 +9,9 @@ public class FaxStuff
     public SipgateFaxClient FaxClient { get; }
     public FaxScheduler FaxScheduler { get; }
 
-    public FaxStuff()
+    private FaxStuff()
     {
-        FaxClient = new SipgateFaxClient(new OAuth2ImplicitFlowHeaderProvider(new GuiOauthImplicitFlowHandler()));
+        FaxClient = new SipgateFaxClient(new AccessTokenThenOauthProvider());
         FaxScheduler = new FaxScheduler(FaxClient);
     }
 }
