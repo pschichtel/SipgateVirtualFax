@@ -9,8 +9,8 @@
         <Nullable>enable</Nullable>
         <Company>Phillip Schichtel</Company>
         <Product>Sipgate Virtual Fax</Product>
-        <AssemblyVersion>1.0.0.0</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
+        <AssemblyVersion>1.0.1.0</AssemblyVersion>
+        <FileVersion>1.0.1.0</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
         <ApplicationIcon>fax.ico</ApplicationIcon>
     </PropertyGroup>

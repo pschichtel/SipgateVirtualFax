@@ -6,6 +6,8 @@
         <RootNamespace>SipgateVirtualFax</RootNamespace>
         <Nullable>enable</Nullable>
         <UICulture>en-US</UICulture>
+        <AssemblyVersion>1.0.1.0</AssemblyVersion>
+        <FileVersion>1.0.1.0</FileVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

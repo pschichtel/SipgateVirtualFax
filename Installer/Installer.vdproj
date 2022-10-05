@@ -188,15 +188,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:sipgate Virtual Fax"
-        "ProductCode" = "8:{B581669C-FD93-460A-9154-2AA9839C89AE}"
-        "PackageCode" = "8:{1FB6EF5B-7220-4D5B-B38B-B8B4CAF1BECF}"
+        "ProductCode" = "8:{DE8255F3-BD94-4707-8BE7-058E4E90CDF3}"
+        "PackageCode" = "8:{5BE2D434-A510-454A-94EF-B6244482A644}"
         "UpgradeCode" = "8:{487C6B91-DC08-4254-A798-989F07526DCD}"
         "AspNetVersion" = "8:"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:1.0.0"
+        "ProductVersion" = "8:1.0.1"
         "Manufacturer" = "8:Phillip Schichtel"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://schich.tel"
@@ -768,7 +768,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A96EFF4CEE3E4CC3B2F742CB01A2D7C3"
             {
-            "SourcePath" = "8:..\\GUI\\obj\\Debug\\net47\\GUI.exe"
+            "SourcePath" = "8:..\\GUI\\obj\\Release\\net47\\GUI.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_A902EEDF7E294A768315CD86096787B5"
