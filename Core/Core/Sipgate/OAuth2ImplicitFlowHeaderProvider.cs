@@ -18,7 +18,7 @@ public class OAuth2ImplicitFlowHeaderProvider : IAuthorizationHeaderProvider
     private static readonly Uri DefaultAuthorizationUri = new("https://login.sipgate.com/auth/realms/sipgate-apps/protocol/openid-connect/auth");
     private static readonly Uri DefaultRedirectUri = new("https://localhost:31337");
     // Looks like a secret, but it really isn't
-    private const string DefaultClientId = "2678637-1-60b58b61-8106-11ec-9225-1fac1a8d5fca:sipgate-apps";
+    private const string DefaultClientId = "2678637-1-dce11315-449f-11ed-8429-21e3cf961f8f:third-party";
     private static readonly string[] DefaultScopes =
     {
         "sessions:write", "sessions:fax:write", "history:read", "faxlines:read", "groups:faxlines:read",
