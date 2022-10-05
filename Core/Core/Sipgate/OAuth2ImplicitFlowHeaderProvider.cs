@@ -15,7 +15,7 @@ public class OAuth2ImplicitFlowException : Exception
 
 public class OAuth2ImplicitFlowHeaderProvider : IAuthorizationHeaderProvider
 {
-    private static readonly Uri DefaultAuthorizationUri = new("https://login.sipgate.com/auth/realms/sipgate-apps/protocol/openid-connect/auth");
+    private static readonly Uri DefaultAuthorizationUri = new("https://login.sipgate.com/auth/realms/third-party/protocol/openid-connect/auth");
     private static readonly Uri DefaultRedirectUri = new("https://localhost:31337");
     // Looks like a secret, but it really isn't
     private const string DefaultClientId = "2678637-1-dce11315-449f-11ed-8429-21e3cf961f8f:third-party";
