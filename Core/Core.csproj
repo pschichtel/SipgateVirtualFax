@@ -15,7 +15,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="iTextSharp" Version="5.5.13.3" />
+      <PackageReference Include="iTextSharp" Version="5.5.13.4" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="NLog" Version="5.3.4" />
       <PackageReference Include="NTwain" Version="3.7.5" />
