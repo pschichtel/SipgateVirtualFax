@@ -26,7 +26,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CefSharp.Wpf" Version="131.2.70" />
+      <PackageReference Include="CefSharp.Wpf" Version="131.3.10" />
       <PackageReference Include="CredentialManagement" Version="1.0.2" />
       <PackageReference Include="libphonenumber-csharp" Version="8.13.51" />
     </ItemGroup>
